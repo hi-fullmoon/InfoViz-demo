@@ -26,7 +26,7 @@ class DeepSeekClient:
         if not self.api_key:
             raise ValueError("请设置DEEPSEEK_API_KEY环境变量或直接传入api_key参数")
 
-        self.base_url = "https://api.deepseek.com/v1/chat/completions"
+        self.base_url = "https://api.deepseek.com/chat/completions"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
@@ -162,7 +162,7 @@ class DeepSeekClient:
             self.base_url,
             headers=self.headers,
             json=payload,
-            timeout=30
+            timeout=60
         )
 
         if response.status_code != 200:

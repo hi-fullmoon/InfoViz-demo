@@ -30,7 +30,7 @@ def find_chinese_font():
             chinese_fonts.append(font_name)
 
     # 常见的macOS中文字体，按优先级排序
-    common_fonts = ['Hiragino Sans GB', 'Hiragino Sans', 'STHeiti', 'PingFang SC', 'Arial Unicode MS', 'SimHei', 'Microsoft YaHei']
+    common_fonts = ['Hiragino Sans', 'STHeiti', 'PingFang SC', 'Arial Unicode MS', 'SimHei', 'Microsoft YaHei']
 
     for font in common_fonts:
         if font in [f.name for f in fm.fontManager.ttflist]:
@@ -138,9 +138,27 @@ class DataVisualizer:
         Returns:
             保存的文件路径
         """
+        # 数据验证和清理
+        if not keywords:
+            print("警告: 关键词列表为空，跳过关键词频率图表生成")
+            return None
+
+        # 过滤掉无效数据
+        valid_keywords = []
+        for word, count in keywords:
+            if word and isinstance(count, (int, float)) and not np.isnan(count) and count > 0:
+                valid_keywords.append((word, int(count)))
+
+        if not valid_keywords:
+            print("警告: 没有有效的关键词数据，跳过关键词频率图表生成")
+            return None
+
         # 准备数据
-        top_keywords = keywords[:top_n]
+        top_keywords = valid_keywords[:top_n]
         words, counts = zip(*top_keywords)
+
+        # 确保counts都是整数
+        counts = [int(count) for count in counts]
 
         # 创建图表
         plt.figure(figsize=(12, 8))
@@ -178,9 +196,27 @@ class DataVisualizer:
         Returns:
             保存的文件路径
         """
+        # 数据验证和清理
+        if not entities:
+            print("警告: 实体数据为空，跳过实体分布图表生成")
+            return None
+
+        # 过滤掉空实体类型
+        valid_entities = {}
+        for entity_type, entity_list in entities.items():
+            if entity_list and len(entity_list) > 0:
+                valid_entities[entity_type] = entity_list
+
+        if not valid_entities:
+            print("警告: 没有有效的实体数据，跳过实体分布图表生成")
+            return None
+
         # 准备数据
-        entity_types = list(entities.keys())
-        entity_counts = [len(entities[entity_type]) for entity_type in entity_types]
+        entity_types = list(valid_entities.keys())
+        entity_counts = [len(valid_entities[entity_type]) for entity_type in entity_types]
+
+        # 确保所有计数都是有效的
+        entity_counts = [int(count) for count in entity_counts if count > 0]
 
         # 创建饼图
         plt.figure(figsize=(10, 8))
@@ -213,15 +249,35 @@ class DataVisualizer:
         Returns:
             保存的文件路径
         """
+        # 数据验证和清理
+        if not sentiment_data:
+            print("警告: 情感分析数据为空，跳过情感分析图表生成")
+            return None
+
+        # 获取数据并确保是有效数值
+        positive_count = sentiment_data.get('positive_count', 0)
+        negative_count = sentiment_data.get('negative_count', 0)
+        total_sentiment_words = sentiment_data.get('total_sentiment_words', 0)
+
+        # 处理NaN值
+        positive_count = 0 if np.isnan(positive_count) else int(positive_count)
+        negative_count = 0 if np.isnan(negative_count) else int(negative_count)
+        total_sentiment_words = 0 if np.isnan(total_sentiment_words) else int(total_sentiment_words)
+
+        # 计算中性情感数量
+        neutral_count = max(0, total_sentiment_words - positive_count - negative_count)
+
         # 准备数据
         labels = ['正面', '负面', '中性']
-        counts = [
-            sentiment_data.get('positive_count', 0),
-            sentiment_data.get('negative_count', 0),
-            sentiment_data.get('total_sentiment_words', 0) -
-            sentiment_data.get('positive_count', 0) -
-            sentiment_data.get('negative_count', 0)
-        ]
+        counts = [positive_count, negative_count, neutral_count]
+
+        # 确保所有计数都是非负数
+        counts = [max(0, int(count)) for count in counts]
+
+        # 如果所有计数都为0，跳过图表生成
+        if sum(counts) == 0:
+            print("警告: 情感分析数据全为0，跳过情感分析图表生成")
+            return None
 
         # 创建子图
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
@@ -238,8 +294,9 @@ class DataVisualizer:
 
         # 添加数值标签
         for bar, count in zip(bars, counts):
-            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1,
-                    str(count), ha='center', va='bottom')
+            if count > 0:  # 只为非零值添加标签
+                ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.1,
+                        str(count), ha='center', va='bottom')
 
         plt.suptitle(title, fontsize=16, fontweight='bold')
         plt.tight_layout()
@@ -280,13 +337,17 @@ class DataVisualizer:
             basic_stats.get('unique_words', 0)
         ]
 
+        # 处理NaN值并确保是整数
+        stats_values = [0 if np.isnan(val) else int(val) for val in stats_values]
+
         bars1 = ax1.bar(stats_labels, stats_values, color=self.colors['primary'])
         ax1.set_title('基本统计', fontsize=14, fontweight='bold')
         ax1.set_ylabel('数量')
 
         # 添加数值标签
+        max_val = max(stats_values) if stats_values else 1
         for bar, value in zip(bars1, stats_values):
-            ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(stats_values)*0.01,
+            ax1.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max_val*0.01,
                     str(value), ha='center', va='bottom')
 
         # 数据提取统计
@@ -301,14 +362,18 @@ class DataVisualizer:
             data_extraction.get('urls_found', 0)
         ]
 
+        # 处理NaN值并确保是整数
+        extraction_values = [0 if np.isnan(val) else int(val) for val in extraction_values]
+
         bars2 = ax2.bar(extraction_labels, extraction_values, color=self.colors['secondary'])
         ax2.set_title('数据提取统计', fontsize=14, fontweight='bold')
         ax2.set_ylabel('数量')
         ax2.tick_params(axis='x', rotation=45)
 
         # 添加数值标签
+        max_val = max(extraction_values) if extraction_values else 1
         for bar, value in zip(bars2, extraction_values):
-            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(extraction_values)*0.01,
+            ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max_val*0.01,
                     str(value), ha='center', va='bottom')
 
         # 实体统计
@@ -316,25 +381,44 @@ class DataVisualizer:
         entity_types = list(entities.keys())
         entity_counts = [len(entities[entity_type]) for entity_type in entity_types]
 
-        bars3 = ax3.bar(entity_types, entity_counts, color=self.colors['accent'])
-        ax3.set_title('实体统计', fontsize=14, fontweight='bold')
-        ax3.set_ylabel('数量')
+        # 过滤掉空实体类型
+        valid_entities = [(entity_type, count) for entity_type, count in zip(entity_types, entity_counts) if count > 0]
+        if valid_entities:
+            entity_types, entity_counts = zip(*valid_entities)
+        else:
+            entity_types, entity_counts = [], []
 
-        # 添加数值标签
-        for bar, count in zip(bars3, entity_counts):
-            ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(entity_counts)*0.01,
-                    str(count), ha='center', va='bottom')
+        if entity_types:
+            bars3 = ax3.bar(entity_types, entity_counts, color=self.colors['accent'])
+            ax3.set_title('实体统计', fontsize=14, fontweight='bold')
+            ax3.set_ylabel('数量')
+
+            # 添加数值标签
+            max_val = max(entity_counts) if entity_counts else 1
+            for bar, count in zip(bars3, entity_counts):
+                ax3.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max_val*0.01,
+                        str(count), ha='center', va='bottom')
+        else:
+            ax3.text(0.5, 0.5, '无实体数据', ha='center', va='center', transform=ax3.transAxes)
+            ax3.set_title('实体统计', fontsize=14, fontweight='bold')
 
         # 情感分析
         sentiment = data_summary.get('sentiment', {})
         sentiment_labels = ['正面', '负面', '中性']
-        sentiment_values = [
-            sentiment.get('positive_count', 0),
-            sentiment.get('negative_count', 0),
-            sentiment.get('total_sentiment_words', 0) -
-            sentiment.get('positive_count', 0) -
-            sentiment.get('negative_count', 0)
-        ]
+
+        positive_count = sentiment.get('positive_count', 0)
+        negative_count = sentiment.get('negative_count', 0)
+        total_sentiment_words = sentiment.get('total_sentiment_words', 0)
+
+        # 处理NaN值
+        positive_count = 0 if np.isnan(positive_count) else int(positive_count)
+        negative_count = 0 if np.isnan(negative_count) else int(negative_count)
+        total_sentiment_words = 0 if np.isnan(total_sentiment_words) else int(total_sentiment_words)
+
+        neutral_count = max(0, total_sentiment_words - positive_count - negative_count)
+
+        sentiment_values = [positive_count, negative_count, neutral_count]
+        sentiment_values = [max(0, int(val)) for val in sentiment_values]
 
         bars4 = ax4.bar(sentiment_labels, sentiment_values,
                        color=[self.colors['success'], self.colors['warning'], self.colors['info']])
@@ -342,9 +426,11 @@ class DataVisualizer:
         ax4.set_ylabel('数量')
 
         # 添加数值标签
+        max_val = max(sentiment_values) if sentiment_values else 1
         for bar, value in zip(bars4, sentiment_values):
-            ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max(sentiment_values)*0.01,
-                    str(value), ha='center', va='bottom')
+            if value > 0:
+                ax4.text(bar.get_x() + bar.get_width()/2, bar.get_height() + max_val*0.01,
+                        str(value), ha='center', va='bottom')
 
         plt.suptitle(title, fontsize=16, fontweight='bold')
         plt.tight_layout()
@@ -387,6 +473,9 @@ class DataVisualizer:
             basic_stats.get('unique_words', 0)
         ]
 
+        # 处理NaN值并确保是整数
+        stats_values = [0 if np.isnan(val) else int(val) for val in stats_values]
+
         fig.add_trace(
             go.Bar(x=stats_labels, y=stats_values, name='基本统计',
                   marker_color=self.colors['primary']),
@@ -406,6 +495,9 @@ class DataVisualizer:
             data_extraction.get('urls_found', 0)
         ]
 
+        # 处理NaN值并确保是整数
+        extraction_values = [0 if np.isnan(val) else int(val) for val in extraction_values]
+
         fig.add_trace(
             go.Bar(x=extraction_labels, y=extraction_values, name='数据提取',
                   marker_color=self.colors['secondary']),
@@ -417,21 +509,38 @@ class DataVisualizer:
         entity_types = list(entities.keys())
         entity_counts = [len(entities[entity_type]) for entity_type in entity_types]
 
-        fig.add_trace(
-            go.Pie(labels=entity_types, values=entity_counts, name='实体分布'),
-            row=2, col=1
-        )
+        # 过滤掉空实体类型
+        valid_entities = [(entity_type, count) for entity_type, count in zip(entity_types, entity_counts) if count > 0]
+        if valid_entities:
+            entity_types, entity_counts = zip(*valid_entities)
+            fig.add_trace(
+                go.Pie(labels=entity_types, values=entity_counts, name='实体分布'),
+                row=2, col=1
+            )
+        else:
+            # 如果没有实体数据，显示空饼图
+            fig.add_trace(
+                go.Pie(labels=['无数据'], values=[1], name='实体分布'),
+                row=2, col=1
+            )
 
         # 情感分析
         sentiment = data_summary.get('sentiment', {})
         sentiment_labels = ['正面', '负面', '中性']
-        sentiment_values = [
-            sentiment.get('positive_count', 0),
-            sentiment.get('negative_count', 0),
-            sentiment.get('total_sentiment_words', 0) -
-            sentiment.get('positive_count', 0) -
-            sentiment.get('negative_count', 0)
-        ]
+
+        positive_count = sentiment.get('positive_count', 0)
+        negative_count = sentiment.get('negative_count', 0)
+        total_sentiment_words = sentiment.get('total_sentiment_words', 0)
+
+        # 处理NaN值
+        positive_count = 0 if np.isnan(positive_count) else int(positive_count)
+        negative_count = 0 if np.isnan(negative_count) else int(negative_count)
+        total_sentiment_words = 0 if np.isnan(total_sentiment_words) else int(total_sentiment_words)
+
+        neutral_count = max(0, total_sentiment_words - positive_count - negative_count)
+
+        sentiment_values = [positive_count, negative_count, neutral_count]
+        sentiment_values = [max(0, int(val)) for val in sentiment_values]
 
         fig.add_trace(
             go.Bar(x=sentiment_labels, y=sentiment_values, name='情感分析',
@@ -470,32 +579,62 @@ class DataVisualizer:
 
         try:
             # 词云图
-            if text:
-                visualizations['word_cloud'] = self.create_word_cloud(text)
+            if text and text.strip():
+                try:
+                    word_cloud_path = self.create_word_cloud(text)
+                    if word_cloud_path:
+                        visualizations['word_cloud'] = word_cloud_path
+                except Exception as e:
+                    print(f"词云图生成失败: {e}")
 
             # 关键词频率图
-            if 'top_keywords' in data_summary:
-                visualizations['keyword_frequency'] = self.create_keyword_frequency_chart(
-                    data_summary['top_keywords']
-                )
+            if 'top_keywords' in data_summary and data_summary['top_keywords']:
+                try:
+                    keyword_path = self.create_keyword_frequency_chart(
+                        data_summary['top_keywords']
+                    )
+                    if keyword_path:
+                        visualizations['keyword_frequency'] = keyword_path
+                except Exception as e:
+                    print(f"关键词频率图生成失败: {e}")
 
             # 实体分布图
-            if 'entities' in data_summary:
-                visualizations['entity_distribution'] = self.create_entity_distribution_chart(
-                    data_summary['entities']
-                )
+            if 'entities' in data_summary and data_summary['entities']:
+                try:
+                    entity_path = self.create_entity_distribution_chart(
+                        data_summary['entities']
+                    )
+                    if entity_path:
+                        visualizations['entity_distribution'] = entity_path
+                except Exception as e:
+                    print(f"实体分布图生成失败: {e}")
 
             # 情感分析图
-            if 'sentiment' in data_summary:
-                visualizations['sentiment_analysis'] = self.create_sentiment_analysis_chart(
-                    data_summary['sentiment']
-                )
+            if 'sentiment' in data_summary and data_summary['sentiment']:
+                try:
+                    sentiment_path = self.create_sentiment_analysis_chart(
+                        data_summary['sentiment']
+                    )
+                    if sentiment_path:
+                        visualizations['sentiment_analysis'] = sentiment_path
+                except Exception as e:
+                    print(f"情感分析图生成失败: {e}")
 
             # 数据摘要图
-            visualizations['data_summary'] = self.create_data_extraction_summary(data_summary)
+            try:
+                summary_path = self.create_data_extraction_summary(data_summary)
+                if summary_path:
+                    visualizations['data_summary'] = summary_path
+            except Exception as e:
+                print(f"数据摘要图生成失败: {e}")
 
             # 交互式仪表板
-            visualizations['interactive_dashboard'] = self.create_interactive_dashboard(data_summary)
+            try:
+                dashboard_path = self.create_interactive_dashboard(data_summary)
+                if dashboard_path:
+                    visualizations['interactive_dashboard'] = dashboard_path
+            except Exception as e:
+                print(f"交互式仪表板生成失败: {e}")
 
         except Exception as e:
             print(f"可视化生成过程中出现错误: {e}")
