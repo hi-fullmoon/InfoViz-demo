@@ -11,7 +11,6 @@ from datetime import datetime
 
 from deepseek_client import DeepSeekClient
 from text_processor import TextProcessor
-from visualizer import DataVisualizer
 
 class InfoVizDemo:
     """信息可视化演示主类"""
@@ -26,7 +25,6 @@ class InfoVizDemo:
         """
         self.deepseek_client = DeepSeekClient(api_key)
         self.text_processor = TextProcessor()
-        self.visualizer = DataVisualizer(output_dir)
         self.output_dir = output_dir
 
     def process_text(self, text: str, use_deepseek: bool = True,
@@ -72,21 +70,10 @@ class InfoVizDemo:
                 print(f"DeepSeek API调用失败: {e}")
                 result['deepseek_error'] = str(e)
 
-        # 生成可视化图表
-        print("4. 生成可视化图表...")
-        try:
-            visualizations = self.visualizer.generate_all_visualizations(
-                local_summary, text
-            )
-            result['visualizations'] = visualizations
-            print(f"生成了 {len(visualizations)} 个可视化图表")
-        except Exception as e:
-            print(f"可视化生成失败: {e}")
-            result['visualization_error'] = str(e)
 
         # 保存结果
-        print("5. 保存分析结果...")
-        self._save_results(result)
+        print("4. 保存分析结果...")
+        self.save_results(result)
 
         return result
 
@@ -114,7 +101,7 @@ class InfoVizDemo:
             print(f"文件读取失败: {e}")
             return {'error': str(e)}
 
-    def _save_results(self, result: Dict[str, Any]) -> None:
+    def save_results(self, result: Dict[str, Any]) -> None:
         """
         保存分析结果
 
@@ -122,6 +109,9 @@ class InfoVizDemo:
             result: 分析结果
         """
         try:
+            # 确保输出目录存在
+            os.makedirs(self.output_dir, exist_ok=True)
+
             # 保存JSON结果
             json_filename = f"analysis_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             json_filepath = os.path.join(self.output_dir, json_filename)
