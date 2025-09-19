@@ -154,15 +154,15 @@ class DeepSeekClient:
                     "content": prompt
                 }
             ],
-            "temperature": 0.3,
-            "max_tokens": 4000
+            "temperature": 0.7,
+            "max_tokens": 6000
         }
 
         response = requests.post(
             self.base_url,
             headers=self.headers,
             json=payload,
-            timeout=60
+            timeout=120
         )
 
         if response.status_code != 200:
