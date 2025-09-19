@@ -10,7 +10,6 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 
 from deepseek_client import DeepSeekClient
-from text_processor import TextProcessor
 
 class InfoVizDemo:
     """信息可视化演示主类"""
@@ -24,11 +23,9 @@ class InfoVizDemo:
             output_dir: 输出目录
         """
         self.deepseek_client = DeepSeekClient(api_key)
-        self.text_processor = TextProcessor()
         self.output_dir = output_dir
 
-    def process_text(self, text: str, use_deepseek: bool = True,
-                    extraction_type: str = "comprehensive") -> Dict[str, Any]:
+    def process_text(self, text: str, extraction_type: str = "comprehensive") -> Dict[str, Any]:
         """
         处理文本并生成可视化
 
@@ -42,43 +39,32 @@ class InfoVizDemo:
         """
         print("开始处理文本...")
 
-        # 本地文本处理
-        print("1. 执行本地文本分析...")
-        local_summary = self.text_processor.create_data_summary(text)
-
         result = {
             'input_text': text,
-            'local_analysis': local_summary,
             'deepseek_analysis': None,
-            'visualizations': {},
-            'processing_time': datetime.now().isoformat()
+            'visualization_suggestions': None
         }
 
-        # DeepSeek API分析
-        if use_deepseek:
-            try:
-                print("2. 调用DeepSeek API进行深度分析...")
-                deepseek_data = self.deepseek_client.extract_data_from_text(text, extraction_type)
-                result['deepseek_analysis'] = deepseek_data
+        try:
+            print("1. 调用DeepSeek API进行深度分析...")
+            deepseek_data = self.deepseek_client.extract_data_from_text(text, extraction_type)
+            result['deepseek_analysis'] = deepseek_data
 
-                # 生成可视化建议
-                print("3. 生成可视化建议...")
-                viz_suggestions = self.deepseek_client.generate_visualization_suggestions(deepseek_data)
-                result['visualization_suggestions'] = viz_suggestions
+            print("2. 生成可视化建议...")
+            viz_suggestions = self.deepseek_client.generate_visualization_suggestions(deepseek_data)
+            result['visualization_suggestions'] = viz_suggestions
 
-            except Exception as e:
-                print(f"DeepSeek API调用失败: {e}")
-                result['deepseek_error'] = str(e)
+        except Exception as e:
+            print(f"DeepSeek API调用失败: {e}")
+            result['deepseek_error'] = str(e)
 
-
-        # 保存结果
-        print("4. 保存分析结果...")
+         # 保存结果
+        print("3. 保存分析结果...")
         self.save_results(result)
 
         return result
 
-    def process_file(self, file_path: str, use_deepseek: bool = True,
-                    extraction_type: str = "comprehensive") -> Dict[str, Any]:
+    def process_file(self, file_path: str, extraction_type: str = "comprehensive") -> Dict[str, Any]:
         """
         处理文件中的文本
 
@@ -95,7 +81,7 @@ class InfoVizDemo:
                 text = f.read()
 
             print(f"成功读取文件: {file_path}")
-            return self.process_text(text, use_deepseek, extraction_type)
+            return self.process_text(text, extraction_type)
 
         except Exception as e:
             print(f"文件读取失败: {e}")
@@ -131,51 +117,8 @@ class InfoVizDemo:
         Args:
             result: 分析结果
         """
-        print("\n" + "="*50)
-        print("分析结果摘要")
-        print("="*50)
-
-        if 'local_analysis' in result:
-            local = result['local_analysis']
-            basic_stats = local.get('basic_stats', {})
-
-            print(f"文本长度: {basic_stats.get('text_length', 0)} 字符")
-            print(f"词数: {basic_stats.get('word_count', 0)} 个")
-            print(f"句子数: {basic_stats.get('sentence_count', 0)} 个")
-            print(f"唯一词数: {basic_stats.get('unique_words', 0)} 个")
-
-            # 数据提取统计
-            data_extraction = local.get('data_extraction', {})
-            print(f"\n数据提取统计:")
-            print(f"  数字: {data_extraction.get('numbers_found', 0)} 个")
-            print(f"  百分比: {data_extraction.get('percentages_found', 0)} 个")
-            print(f"  日期: {data_extraction.get('dates_found', 0)} 个")
-            print(f"  金额: {data_extraction.get('money_found', 0)} 个")
-            print(f"  邮箱: {data_extraction.get('emails_found', 0)} 个")
-            print(f"  电话: {data_extraction.get('phones_found', 0)} 个")
-            print(f"  网址: {data_extraction.get('urls_found', 0)} 个")
-
-            # 实体统计
-            entities = local.get('entities', {})
-            print(f"\n实体统计:")
-            for entity_type, entity_list in entities.items():
-                print(f"  {entity_type}: {len(entity_list)} 个")
-
-            # 情感分析
-            sentiment = local.get('sentiment', {})
-            print(f"\n情感分析:")
-            print(f"  情感倾向: {sentiment.get('sentiment_label', '未知')}")
-            print(f"  情感得分: {sentiment.get('sentiment_score', 0):.2f}")
-            print(f"  正面词汇: {sentiment.get('positive_count', 0)} 个")
-            print(f"  负面词汇: {sentiment.get('negative_count', 0)} 个")
-
-        # 可视化文件
-        if 'visualizations' in result:
-            print(f"\n生成的可视化文件:")
-            for viz_type, filepath in result['visualizations'].items():
-                print(f"  {viz_type}: {filepath}")
-
-        print("="*50)
+        pass
+        # TODO
 
 def main():
     """主函数"""
@@ -184,7 +127,6 @@ def main():
     parser.add_argument('--file', type=str, help='要分析的文件路径')
     parser.add_argument('--api-key', type=str, help='DeepSeek API密钥')
     parser.add_argument('--output-dir', type=str, default='output', help='输出目录')
-    parser.add_argument('--no-deepseek', action='store_true', help='不使用DeepSeek API')
     parser.add_argument('--extraction-type', type=str, default='comprehensive',
                        choices=['comprehensive', 'entities', 'sentiment', 'keywords'],
                        help='数据提取类型')
@@ -207,13 +149,11 @@ def main():
     if args.text:
         result = app.process_text(
             args.text,
-            use_deepseek=not args.no_deepseek,
             extraction_type=args.extraction_type
         )
     else:
         result = app.process_file(
             args.file,
-            use_deepseek=not args.no_deepseek,
             extraction_type=args.extraction_type
         )
 
