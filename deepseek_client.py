@@ -125,6 +125,7 @@ class DeepSeekClient:
         3. 数据映射方式
         4. 颜色方案建议
         5. 交互功能建议
+        6. 数据可以直接用 echarts options 数据格式返回
 
         以JSON格式返回建议列表。
         """
@@ -155,7 +156,7 @@ class DeepSeekClient:
                 }
             ],
             "temperature": 0.7,
-            "max_tokens": 6000
+            "max_tokens": 60 * 5
         }
 
         response = requests.post(
