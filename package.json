@@ -4,12 +4,7 @@
   "description": "信息可视化演示程序 - TypeScript版本",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/main.js",
-    "dev": "ts-node src/main.ts",
-    "test": "jest",
-    "lint": "eslint src/**/*.ts",
-    "clean": "rm -rf dist"
+    "start": "ts-node src/main.ts"
   },
   "keywords": [
     "visualization",
