@@ -175,8 +175,13 @@ ${JSON.stringify(extractedData)}
 }
 \`\`\`
     `;
-    const response = await this.makeRequest(prompt);
-    return this.parseResponse(response);
+    try {
+      const response = await this.makeRequest(prompt);
+      return this.parseResponse(response);
+    } catch (error) {
+      console.error('可视化建议生成失败:', error);
+      throw error;
+    }
   }
 
   /**
