@@ -43,32 +43,10 @@ export interface MarketReferenceData {
   remark?: string;
 }
 
-export interface ExtractedData {
-  数据提取报告: {
-    外汇储备数据: DataPoint[];
-    黄金储备数据: DataPoint[];
-    占比关系数据: DataPoint[];
-    时间序列数据: {
-      外汇储备月度变化: TimeSeriesData[];
-      黄金增持周期: GoldHoldingCycle[];
-    };
-    市场参考数据: MarketReferenceData[];
-    数据发布日期: string;
-    数据来源机构: string[];
-  };
-}
-
-export interface VisualizationSuggestion {
-  type: string;
-  title: string;
-  description: string;
-  data: any;
-}
-
 export interface AnalysisResult {
   inputText: string;
-  deepseekAnalysis?: ExtractedData;
-  visualizationSuggestions?: VisualizationSuggestion[];
+  deepseekAnalysis?: any;
+  visualizationSuggestions?: any;
   deepseekError?: string;
   error?: string;
 }

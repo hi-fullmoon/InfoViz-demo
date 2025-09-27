@@ -37,7 +37,7 @@ export class InfoVizDemo {
       result.deepseekAnalysis = deepseekData;
 
       console.log('2. 生成可视化建议...');
-      const vizSuggestions = this.deepseekClient.generateVisualizationSuggestions();
+      const vizSuggestions = await this.deepseekClient.generateVisualizationSuggestions(deepseekData);
       result.visualizationSuggestions = vizSuggestions;
     } catch (error) {
       console.error('DeepSeek API调用失败:', error);

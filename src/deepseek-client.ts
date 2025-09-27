@@ -5,7 +5,7 @@
 
 import axios, { AxiosResponse } from 'axios';
 import * as dotenv from 'dotenv';
-import { DeepSeekResponse, ExtractedData, VisualizationSuggestion, DeepSeekClientConfig } from './types';
+import { DeepSeekResponse, DeepSeekClientConfig } from './types';
 
 // 加载环境变量
 dotenv.config();
@@ -30,9 +30,10 @@ export class DeepSeekClient {
    * @param text 要分析的文本
    * @returns 提取的数据字典
    */
-  async extractDataFromText(text: string): Promise<ExtractedData> {
+  async extractDataFromText(text: string) {
     const prompt = `
-分析以下文本，提取其中的数据和重要信息
+分析以下文本，提取其中的数据和重要信息：
+${text}
 
 提取要求：
 1. 数据焦点：重点提取可以量化或对比的数据点。
@@ -50,6 +51,7 @@ export class DeepSeekClient {
   "event_summary": "中国外汇储备规模在2025年8月末的变化。",
   "source": "国家外汇管理局",
   "data_as_of": "09-07",
+  "visualization_type": "chart",
   "data_points": [
     {
       "period_end": "2025年8月末",
@@ -73,6 +75,7 @@ export class DeepSeekClient {
   "event_summary": "国家外汇储备规模上升",
   "source": "国家外汇局",
   "data_as_of": "09-07",
+  "visualization_type": "card",
   "event_list": [
     {
       "event_time": "2025年8月",
@@ -96,8 +99,8 @@ export class DeepSeekClient {
 }
 \`\`\`
 
-文本内容：
-${text}`;
+其中 event_summary（事件摘要），source（数据来源），data_as_of（数据日期），ui（可视化类型，card 或 chart）是必填项，其他项根据实际情况选择。
+`;
 
     try {
       const response = await this.makeRequest(prompt);
@@ -113,9 +116,67 @@ ${text}`;
    * @param extractedData 提取的数据
    * @returns 可视化建议列表
    */
-  generateVisualizationSuggestions(): VisualizationSuggestion[] {
-    // TODO: 实现可视化建议生成逻辑
-    return [];
+  async generateVisualizationSuggestions(extractedData: any) {
+    const prompt = `
+**【角色与任务目标】**
+你是一个专业的数据分析师和可视化专家。请仔细分析我提供的文本内容，并完成以下任务：
+
+1.  **提取关键数据和结论。**
+2.  **判断最佳展示类型：** 判断提取的信息更适合以**ECharts 图表**展示 (类型: \`chart\`)，还是以**卡片摘要**展示 (类型: \`ui\`)。
+3.  **生成格式化 JSON 输出：** 严格根据你判断的类型，生成对应的 JSON 结构。
+
+---
+
+### **步骤一：分析提取的数据，是一个 json 格式**
+
+${JSON.stringify(extractedData)}
+
+---
+
+### **步骤二：生成可视化配置 (JSON 格式)**
+
+请仅输出一个完整的 JSON 对象，该对象必须包含 \`visualization_type\` 字段，并根据其值决定后续的字段结构。
+
+**结构要求：**
+
+#### **场景 1: 如果判断类型为图表 (Chart)**
+* **\`visualization_type\`** 必须为 \`"chart"\`。
+* 必须包含一个 **\`echarts_options\`** 字段，其值为一个完整的 ECharts Options **JavaScript 对象结构** (JSON)。
+* \`echarts_options\` 中**不**得包含任何 \`theme\`、\`color\` 属性或任何与主题相关的配置。
+
+#### **场景 2: 如果判断类型为摘要 (UI)**
+* **\`visualization_type\`** 必须为 \`"ui"\`。
+* 必须包含 **\`ui_data\`** 字段，其值是一个对象，至少包含 \`title\` 和 \`summary\` 字段。
+
+**最终 JSON 输出：**
+
+输出示例：
+\`\`\`json
+{
+  "visualization_type": "chart",
+  "chart_suggestion": "柱状图 (Bar Chart)",
+  "echarts_options": {
+    "title": {"text": "年度销售额对比"},
+    "tooltip": {},
+    "legend": {"data": ["销售额"]},
+    "xAxis": {"data": ["2023", "2024"]},
+    "yAxis": {},
+    "series": [{"name": "销售额", "type": "bar", "data": [120, 200]}]
+  }
+}
+
+{
+  "visualization_type": "ui",
+  "ui_data": {
+    "title": "重要政策宣布",
+    "summary": "管理层宣布了一项重大的人事变动，任命了新的首席技术官，以推动未来的数字化转型战略。",
+    "key_takeaways": ["人事变动", "数字化转型战略"]
+  }
+}
+\`\`\`
+    `;
+    const response = await this.makeRequest(prompt);
+    return this.parseResponse(response);
   }
 
   /**
@@ -123,7 +184,7 @@ ${text}`;
    * @param prompt 提示词
    * @returns API响应
    */
-  private async makeRequest(prompt: string): Promise<DeepSeekResponse> {
+  private async makeRequest(prompt: string) {
     const payload = {
       model: 'deepseek-chat',
       messages: [
@@ -163,7 +224,7 @@ ${text}`;
    * @param response API响应
    * @returns 解析后的数据
    */
-  private parseResponse(response: DeepSeekResponse): ExtractedData {
+  private parseResponse(response: DeepSeekResponse) {
     try {
       // 提取AI生成的内容
       const content = response.choices[0].message.content;
@@ -196,7 +257,7 @@ ${text}`;
    * @param content 包含markdown代码块的字符串
    * @returns 提取的JSON字符串，如果没有找到则返回null
    */
-  private extractJsonFromMarkdown(content: string): string | null {
+  private extractJsonFromMarkdown(content: string) {
     // 匹配 ```json ... ``` 格式的代码块
     const jsonPattern = /```json\s*\n(.*?)\n```/s;
     const jsonMatch = content.match(jsonPattern);
