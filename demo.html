@@ -72,7 +72,7 @@
     .charts-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 30px;
+      gap: 20px;
       justify-content: center;
     }
 
@@ -80,7 +80,7 @@
       background: white;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-      padding: 20px;
+      padding: 10px;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       flex: 1 1 600px;
       min-width: 300px;
@@ -88,7 +88,6 @@
     }
 
     .chart-container:hover {
-      transform: translateY(-5px);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
 
@@ -96,7 +95,7 @@
       font-size: 1.3em;
       font-weight: 600;
       color: #333;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       text-align: center;
       padding-bottom: 10px;
       border-bottom: 2px solid #f0f0f0;
@@ -138,7 +137,7 @@
     <div class="content">
       <div class="description">
         <h3>📊 分析概述</h3>
-        <p>基于AI智能分析的数据可视化展示</p>
+        <p>中国外汇储备数据分析报告 - 包含趋势分析、月度变化、影响因素和历史对比四个核心图表</p>
       </div>
 
       <div id="charts-container" class="charts-grid">
@@ -147,13 +146,13 @@
     </div>
 
     <div class="footer">
-      <p>生成时间: <span class="timestamp">2025-09-28 19:43:04.429634</span></p>
+      <p>生成时间: <span class="timestamp">2025-09-28 20:28:09.600055</span></p>
     </div>
   </div>
 
   <script>
     // 图表数据
-    const chartsData = {"total_charts":4,"layout":"grid_2x2","charts":[{"chart_id":"overview_chart","title":"我国服务贸易总体情况（前7月）","type":"bar","config":{"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"legend":{"data":["贸易额（亿元）","增长率"]},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["服务贸易总额","服务出口","服务进口"]},"yAxis":[{"type":"value","name":"贸易额（亿元）","axisLabel":{"formatter":"{value}"}},{"type":"value","name":"增长率","axisLabel":{"formatter":"{value}%"}}],"series":[{"name":"贸易额（亿元）","type":"bar","data":[{"value":45781.6,"itemStyle":{"color":"#5470c6"}},{"value":19983,"itemStyle":{"color":"#91cc75"}},{"value":25798.6,"itemStyle":{"color":"#fac858"}}]},{"name":"增长率","type":"line","yAxisIndex":1,"data":[{"value":8.2,"itemStyle":{"color":"#ee6666"}},{"value":15.3,"itemStyle":{"color":"#ee6666"}},{"value":3.3,"itemStyle":{"color":"#ee6666"}}]}]}},{"chart_id":"knowledge_intensive_breakdown","title":"知识密集型服务贸易构成","type":"pie","config":{"tooltip":{"trigger":"item","formatter":"{a} <br/>{b}: {c}亿元 ({d}%)"},"legend":{"orient":"vertical","left":"left"},"series":[{"name":"知识密集型服务","type":"pie","radius":"50%","data":[{"value":10253.3,"name":"知识密集型出口","itemStyle":{"color":"#5470c6"}},{"value":7502.7,"name":"知识密集型进口","itemStyle":{"color":"#91cc75"}},{"value":2750.6,"name":"知识密集型顺差","itemStyle":{"color":"#fac858"}}],"emphasis":{"itemStyle":{"shadowBlur":10,"shadowOffsetX":0,"shadowColor":"rgba(0, 0, 0, 0.5)"}}}]}},{"chart_id":"growth_comparison","title":"主要服务类别增长率对比","type":"bar","config":{"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"legend":{"data":["增长率"]},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["服务贸易总额","服务出口","服务进口","知识密集型贸易","其他商业服务","电信计算机服务","旅行服务总额","旅行服务出口","旅行服务进口"]},"yAxis":{"type":"value","name":"增长率 (%)","axisLabel":{"formatter":"{value}%"}},"series":[{"name":"增长率","type":"bar","data":[{"value":8.2,"itemStyle":{"color":"#5470c6"}},{"value":15.3,"itemStyle":{"color":"#91cc75"}},{"value":3.3,"itemStyle":{"color":"#fac858"}},{"value":6.8,"itemStyle":{"color":"#ee6666"}},{"value":3.4,"itemStyle":{"color":"#73c0de"}},{"value":12.6,"itemStyle":{"color":"#3ba272"}},{"value":10.4,"itemStyle":{"color":"#fc8452"}},{"value":62.9,"itemStyle":{"color":"#9a60b4"}},{"value":3.9,"itemStyle":{"color":"#ea7ccc"}}],"label":{"show":true,"position":"top","formatter":"{c}%"}}]}},{"chart_id":"sector_performance","title":"服务贸易各领域表现雷达图","type":"radar","config":{"tooltip":{"trigger":"item"},"legend":{"data":["贸易额（亿元）","增长率"]},"radar":{"indicator":[{"name":"服务贸易总额","max":50000},{"name":"知识密集型贸易","max":20000},{"name":"其他商业服务","max":8000},{"name":"电信计算机服务","max":7000},{"name":"旅行服务","max":15000}]},"series":[{"name":"贸易额 vs 增长率","type":"radar","data":[{"value":[45781.6,17756,7509.7,6268,12594.6],"name":"贸易额（亿元）","areaStyle":{"color":"rgba(84, 112, 198, 0.3)"},"lineStyle":{"color":"#5470c6"}},{"value":[8.2,6.8,3.4,12.6,10.4],"name":"增长率","areaStyle":{"color":"rgba(238, 102, 102, 0.3)"},"lineStyle":{"color":"#ee6666"}}]}]}}]};
+    const chartsData = {"charts":[{"chart_id":"trend_chart_1","title":"2025年中国外汇储备月度变化趋势","type":"line","config":{"title":{"text":"2025年中国外汇储备月度变化趋势","left":"center"},"tooltip":{"trigger":"axis"},"legend":{"data":["月度变化","累计变化"],"top":"10%"},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"月度变化","type":"line","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"markPoint":{"data":[{"type":"max","name":"最大值"},{"type":"min","name":"最小值"}]}},{"name":"累计变化","type":"line","data":[66.79,248.79,383.2,793.2,829.2,1150.87,898.99,1198.18],"markPoint":{"data":[{"type":"max","name":"最高累计"}]}}]}},{"chart_id":"monthly_change_2","title":"2025年各月外汇储备变化量","type":"bar","config":{"title":{"text":"2025年各月外汇储备变化量","left":"center"},"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"变化量","type":"bar","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"itemStyle":{"color":{"type":"linear","x":0,"y":0,"x2":0,"y2":1,"colorStops":[{"offset":0,"color":"#5470c6"},{"offset":1,"color":"#91cc75"}]}},"label":{"show":true,"position":"top"}}]}},{"chart_id":"factors_radar_3","title":"外汇储备变化影响因素分析","type":"radar","config":{"title":{"text":"外汇储备变化影响因素分析","left":"center"},"tooltip":{},"radar":{"indicator":[{"name":"美元指数下跌","max":100},{"name":"全球金融资产价格上涨","max":100},{"name":"非美元货币升值","max":100},{"name":"货币政策预期","max":100},{"name":"宏观经济数据","max":100}]},"series":[{"name":"影响程度","type":"radar","data":[{"value":[85,75,80,70,65],"name":"8月影响因素","areaStyle":{}}]}]}},{"chart_id":"historical_comparison_4","title":"外汇储备历史水平对比","type":"bar","config":{"title":{"text":"外汇储备历史水平对比","left":"center"},"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"legend":{"data":["外汇储备规模"],"top":"10%"},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["2016年1月","2025年7月","2025年8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"外汇储备规模","type":"bar","data":[32300,32922.35,33221.54],"itemStyle":{"color":"#ee6666"},"label":{"show":true,"position":"top"},"markLine":{"data":[{"type":"average","name":"平均值"}]}}]}}],"layout":"grid_2x2","total_charts":4,"description":"中国外汇储备数据分析报告 - 包含趋势分析、月度变化、影响因素和历史对比四个核心图表"};
 
     // 初始化所有图表
     function initCharts() {
@@ -169,7 +168,6 @@
         const chartDiv = document.createElement('div');
         chartDiv.className = 'chart-container';
         chartDiv.innerHTML = `
-                    <div class="chart-title">${chart.title}</div>
                     <div id="chart-${index}" class="chart"></div>
                 `;
         container.appendChild(chartDiv);
