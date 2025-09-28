@@ -9,6 +9,7 @@ from typing import Dict, Any
 from crewai import Agent, Task, Crew, Process
 from dotenv import load_dotenv
 from tools import ContentExtractionTool, DataStructuringTool, VisualizationTool
+from datetime import datetime
 try:
     from langchain_openai import ChatOpenAI
 except ImportError:
@@ -120,6 +121,64 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
         "final_result": str(result) if result else "未完成"
     }
 
+def generate_html_demo(visualization_data: Dict[str, Any], timestamp: str) -> str:
+    """生成HTML演示文件"""
+    try:
+        # 读取HTML模板
+        with open('demo_template.html', 'r', encoding='utf-8') as f:
+            template = f.read()
+
+        # 解析可视化数据
+        charts_data = None
+        description = "数据可视化分析结果"
+
+        # 尝试从不同字段解析图表数据
+        for field in ['final_result', 'visualization_result']:
+            if field in visualization_data and visualization_data[field]:
+                try:
+                    # 尝试解析JSON字符串
+                    if isinstance(visualization_data[field], str):
+                        parsed_data = json.loads(visualization_data[field])
+                        if 'charts' in parsed_data:
+                            charts_data = parsed_data
+                            description = parsed_data.get('description', description)
+                            break
+                except json.JSONDecodeError:
+                    continue
+
+        if not charts_data:
+            # 如果没有找到有效的图表数据，创建一个默认的提示
+            charts_data = {
+                "charts": [],
+                "description": "暂无可视化数据"
+            }
+
+        # 替换模板变量
+        html_content = template.replace('{{title}}', '数据可视化分析报告')
+        html_content = html_content.replace('{{description}}', description)
+        html_content = html_content.replace('{{timestamp}}', timestamp)
+        html_content = html_content.replace('{{charts_json}}', json.dumps(charts_data, ensure_ascii=False, indent=2))
+
+        return html_content
+
+    except Exception as e:
+        print(f"❌ 生成HTML文件时出错: {str(e)}")
+        # 返回一个简单的错误页面
+        return f"""
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数据可视化展示</title>
+</head>
+<body>
+    <h1>数据可视化展示</h1>
+    <p>生成HTML文件时出现错误: {str(e)}</p>
+    <p>时间: {timestamp}</p>
+</body>
+</html>
+"""
+
 def main():
     """主程序入口"""
     print("🚀 启动基于 CrewAI 和 DeepSeek 的信息可视化应用")
@@ -149,18 +208,28 @@ def main():
 
         print("\n✅ 处理完成！")
 
-        # 确保所有结果都是字符串格式
         serializable_results = {
-            "extraction_result": str(results.get('extraction_result', '未完成')),
-            "structuring_result": str(results.get('structuring_result', '未完成')),
-            "visualization_result": str(results.get('visualization_result', '未完成')),
-            "final_result": str(results.get('final_result', '未完成')),
+            "extraction_result": str(results.get('extraction_result', '')),
+            "structuring_result": str(results.get('structuring_result', '')),
+            "visualization_result": str(results.get('visualization_result', '')),
+            "final_result": str(results.get('final_result', '')),
             "timestamp": str(__import__('datetime').datetime.now())
         }
 
         with open('visualization_result.json', 'w', encoding='utf-8') as f:
             json.dump(serializable_results, f, ensure_ascii=False, indent=2)
         print(f"\n💾 结果已保存到: visualization_result.json")
+
+        # 生成HTML演示文件
+        print("\n🌐 正在生成HTML演示文件...")
+        try:
+            html_content = generate_html_demo(serializable_results, serializable_results['timestamp'])
+            with open('demo.html', 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            print(f"✅ HTML演示文件已生成: demo.html")
+            print(f"📂 可以直接在浏览器中打开 demo.html 查看可视化结果")
+        except Exception as e:
+            print(f"❌ 生成HTML文件失败: {str(e)}")
 
     except Exception as e:
         print(f"❌ 处理过程中出现错误: {str(e)}")
