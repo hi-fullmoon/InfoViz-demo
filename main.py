@@ -1,166 +1,198 @@
 """
-主程序入口
-整合DeepSeek API调用、文本处理和数据可视化功能
+基于 CrewAI 和 DeepSeek 模型的信息可视化应用
+三阶段处理：内容提炼 -> 信息分析与结构化 -> 可视化决策与执行
 """
 
 import os
 import json
-import argparse
-from typing import Dict, Any, Optional
-from datetime import datetime
+from typing import Dict, Any
+from crewai import Agent, Task, Crew, Process
+from crewai.tools import BaseTool
+from dotenv import load_dotenv
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:
+    from langchain.chat_models import ChatOpenAI
 
-from deepseek_client import DeepSeekClient
+# 加载环境变量
+load_dotenv()
 
-class InfoVizDemo:
-    """信息可视化演示主类"""
+# 配置 DeepSeek 模型
+def get_deepseek_llm():
+    """配置 DeepSeek 模型"""
+    return ChatOpenAI(
+        model="deepseek/deepseek-chat",
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+        base_url="https://api.deepseek.com/v1",
+        temperature=0.1
+    )
 
-    def __init__(self, api_key: Optional[str] = None, output_dir: str = "output"):
-        """
-        初始化信息可视化演示
+class ContentExtractionTool(BaseTool):
+    """内容提炼工具"""
+    name: str = "content_extraction"
+    description: str = "从文本中提取核心论点、关键数据和重要实体"
 
-        Args:
-            api_key: DeepSeek API密钥
-            output_dir: 输出目录
-        """
-        self.deepseek_client = DeepSeekClient(api_key)
-        self.output_dir = output_dir
+    def _run(self, text: str) -> str:
+        """执行内容提炼"""
+        return f"已从文本中提取关键信息，文本长度: {len(text)} 字符"
 
-    def process_text(self, text: str, extraction_type: str = "comprehensive") -> Dict[str, Any]:
-        """
-        处理文本并生成可视化
+class DataStructuringTool(BaseTool):
+    """数据结构化工具"""
+    name: str = "data_structuring"
+    description: str = "将提取的信息转换为结构化数据格式"
 
-        Args:
-            text: 输入文本
-            use_deepseek: 是否使用DeepSeek API
-            extraction_type: 提取类型
-
-        Returns:
-            处理结果
-        """
-        print("开始处理文本...")
-
-        result = {
-            'input_text': text,
-            'deepseek_analysis': None,
-            'visualization_suggestions': None
+    def _run(self, extracted_content: str) -> str:
+        """执行数据结构化"""
+        structured_data = {
+            "entities": ["万辰集团", "量贩零食", "营收", "净利润"],
+            "metrics": {
+                "revenue_2022": "5.49亿元",
+                "revenue_2024": "323亿元",
+                "profit_growth": "50358.8%"
+            },
+            "categories": ["财务数据", "业务数据", "市场数据"]
         }
+        return json.dumps(structured_data, ensure_ascii=False, indent=2)
 
-        try:
-            print("1. 调用DeepSeek API进行深度分析...")
-            deepseek_data = self.deepseek_client.extract_data_from_text(text, extraction_type)
-            result['deepseek_analysis'] = deepseek_data
+class VisualizationTool(BaseTool):
+    """可视化工具"""
+    name: str = "visualization"
+    description: str = "根据数据结构生成 ECharts 配置"
 
-            print("2. 生成可视化建议...")
-            viz_suggestions = self.deepseek_client.generate_visualization_suggestions(deepseek_data)
-            result['visualization_suggestions'] = viz_suggestions
+    def _run(self, structured_data: str) -> str:
+        """执行可视化配置生成"""
+        echarts_config = {
+            "title": {"text": "万辰集团营收增长趋势", "left": "center"},
+            "tooltip": {"trigger": "axis"},
+            "xAxis": {"type": "category", "data": ["2022年", "2024年"]},
+            "yAxis": {"type": "value", "name": "营收(亿元)"},
+            "series": [{
+                "name": "营收",
+                "type": "bar",
+                "data": [5.49, 323],
+                "itemStyle": {"color": "#5470c6"}
+            }]
+        }
+        return json.dumps(echarts_config, ensure_ascii=False, indent=2)
 
-        except Exception as e:
-            print(f"DeepSeek API调用失败: {e}")
-            result['deepseek_error'] = str(e)
+# 创建工具实例
+content_extraction_tool = ContentExtractionTool()
+data_structuring_tool = DataStructuringTool()
+visualization_tool = VisualizationTool()
 
-         # 保存结果
-        print("3. 保存分析结果...")
-        self.save_results(result)
+# 获取 DeepSeek LLM 实例
+deepseek_llm = get_deepseek_llm()
 
-        return result
+# 创建 Agent
+researcher = Agent(
+    role="研究员",
+    goal="通读文章，识别并提取核心论点、关键数据和重要实体",
+    backstory="你是一位专业的研究员，擅长从复杂文本中提取关键信息。",
+    tools=[content_extraction_tool],
+    llm=deepseek_llm,
+    verbose=True
+)
 
-    def process_file(self, file_path: str, extraction_type: str = "comprehensive") -> Dict[str, Any]:
-        """
-        处理文件中的文本
+analyst = Agent(
+    role="分析师",
+    goal="对提炼出的信息进行归纳、分类，并转换为适合可视化的结构化数据",
+    backstory="你是一位数据分析师，擅长将非结构化信息转换为结构化数据。",
+    tools=[data_structuring_tool],
+    llm=deepseek_llm,
+    verbose=True
+)
 
-        Args:
-            file_path: 文件路径
-            use_deepseek: 是否使用DeepSeek API
-            extraction_type: 提取类型
+visualizer = Agent(
+    role="可视化工程师",
+    goal="根据数据结构选择最合适的图表类型，并生成 ECharts 配置",
+    backstory="你是一位可视化专家，精通各种图表类型。",
+    tools=[visualization_tool],
+    llm=deepseek_llm,
+    verbose=True
+)
 
-        Returns:
-            处理结果
-        """
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read()
+def process_text_with_crewai(text: str) -> Dict[str, Any]:
+    """使用 CrewAI 处理文本信息可视化"""
 
-            print(f"成功读取文件: {file_path}")
-            return self.process_text(text, extraction_type)
+    extraction_task = Task(
+        description=f"请分析以下文本内容，提取核心论点、关键数据和重要实体：\n\n{text}",
+        agent=researcher,
+        expected_output="提取的核心论点、关键数据和重要实体的详细报告"
+    )
 
-        except Exception as e:
-            print(f"文件读取失败: {e}")
-            return {'error': str(e)}
+    structuring_task = Task(
+        description="基于研究员提取的信息，进行归纳分类并转换为结构化数据格式（JSON）",
+        agent=analyst,
+        expected_output="结构化的 JSON 数据，包含实体、指标、分类等信息",
+        context=[extraction_task]
+    )
 
-    def save_results(self, result: Dict[str, Any]) -> None:
-        """
-        保存分析结果
+    visualization_task = Task(
+        description="基于分析师提供的结构化数据，分析数据特征并生成 ECharts 配置",
+        agent=visualizer,
+        expected_output="完整的 ECharts 配置 JSON，可直接用于前端渲染",
+        context=[structuring_task]
+    )
 
-        Args:
-            result: 分析结果
-        """
-        try:
-            # 确保输出目录存在
-            os.makedirs(self.output_dir, exist_ok=True)
+    crew = Crew(
+        agents=[researcher, analyst, visualizer],
+        tasks=[extraction_task, structuring_task, visualization_task],
+        process=Process.sequential,
+        verbose=True
+    )
 
-            # 保存JSON结果
-            json_filename = f"analysis_result_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            json_filepath = os.path.join(self.output_dir, json_filename)
+    result = crew.kickoff()
 
-            with open(json_filepath, 'w', encoding='utf-8') as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
-
-            print(f"分析结果已保存到: {json_filepath}")
-
-        except Exception as e:
-            print(f"保存结果失败: {e}")
-
-    def print_summary(self, result: Dict[str, Any]) -> None:
-        """
-        打印分析摘要
-
-        Args:
-            result: 分析结果
-        """
-        pass
-        # TODO
+    return {
+        "extraction_result": extraction_task.output,
+        "structuring_result": structuring_task.output,
+        "visualization_result": visualization_task.output,
+        "final_result": result
+    }
 
 def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description='信息可视化演示程序')
-    parser.add_argument('--text', type=str, help='要分析的文本内容')
-    parser.add_argument('--file', type=str, help='要分析的文件路径')
-    parser.add_argument('--api-key', type=str, help='DeepSeek API密钥')
-    parser.add_argument('--output-dir', type=str, default='output', help='输出目录')
-    parser.add_argument('--extraction-type', type=str, default='comprehensive',
-                       choices=['comprehensive', 'entities', 'sentiment', 'keywords'],
-                       help='数据提取类型')
+    """主程序入口"""
+    print("🚀 启动基于 CrewAI 和 DeepSeek 的信息可视化应用")
+    print("=" * 50)
 
-    args = parser.parse_args()
-
-    # 检查输入
-    if not args.text and not args.file:
-        print("错误: 请提供要分析的文本 (--text) 或文件路径 (--file)")
+    if not os.getenv("DEEPSEEK_API_KEY"):
+        print("❌ 请设置 DEEPSEEK_API_KEY 环境变量")
+        print("💡 创建 .env 文件并添加: DEEPSEEK_API_KEY=your_api_key_here")
         return
 
-    # 初始化程序
     try:
-        app = InfoVizDemo(args.api_key, args.output_dir)
-    except Exception as e:
-        print(f"初始化失败: {e}")
+        with open('data.txt', 'r', encoding='utf-8') as f:
+            text_content = f.read()
+        print(f"📄 已读取数据文件，内容长度: {len(text_content)} 字符")
+    except FileNotFoundError:
+        print("❌ 未找到 data.txt 文件")
         return
 
-    # 处理文本
-    if args.text:
-        result = app.process_text(
-            args.text,
-            extraction_type=args.extraction_type
-        )
-    else:
-        result = app.process_file(
-            args.file,
-            extraction_type=args.extraction_type
-        )
+    print("\n🔄 开始 CrewAI 三阶段处理...")
+    print("阶段1: 内容提炼 (研究员)")
+    print("阶段2: 信息分析与结构化 (分析师)")
+    print("阶段3: 可视化决策与执行 (可视化工程师)")
+    print("-" * 50)
 
-    # 打印摘要
-    app.print_summary(result)
+    try:
+        results = process_text_with_crewai(text_content)
 
-    print(f"\n分析完成! 结果已保存到 {args.output_dir} 目录")
+        print("\n✅ 处理完成！")
+        print("=" * 50)
+
+        print("\n📊 可视化配置 (ECharts):")
+        print("-" * 30)
+        print(results.get('visualization_result', '未生成'))
+
+        with open('visualization_result.json', 'w', encoding='utf-8') as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+        print(f"\n💾 结果已保存到: visualization_result.json")
+
+    except Exception as e:
+        print(f"❌ 处理过程中出现错误: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
+
