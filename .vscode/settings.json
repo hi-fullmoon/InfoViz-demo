@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["deepseek", "dotenv"]
+  "cSpell.words": ["deepseek", "dotenv"],
+  "editor.formatOnSave": false
 }
