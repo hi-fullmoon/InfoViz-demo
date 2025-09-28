@@ -55,196 +55,65 @@ class VisualizationTool(BaseTool):
         return json.dumps(mixed_config, ensure_ascii=False, indent=2)
 
     def _generate_mixed_visualization(self, data: dict) -> dict:
-        """生成混合可视化配置（Card + ECharts）"""
-        cards = []
-        charts = []
+        """生成可视化配置（Card + ECharts）"""
+        visualizations = []
 
         # 生成 Card 卡片
         if "entities" in data or "metrics" in data:
             # 1. 核心摘要卡片
             summary_card = self._create_summary_card(data)
-            cards.append(summary_card)
+            summary_card["type"] = "card"
+            visualizations.append(summary_card)
 
             # 2. 关键数据卡片
             if "metrics" in data:
                 key_data_card = self._create_key_data_card(data)
-                cards.append(key_data_card)
+                key_data_card["type"] = "card"
+                visualizations.append(key_data_card)
 
         # 生成 ECharts 图表
         if "companies" in data and len(data["companies"]) > 0:
-            # 1. 营收对比图表
-            revenue_chart = self._create_revenue_comparison_chart(data["companies"])
-            charts.append(revenue_chart)
+            companies = data["companies"]
 
-            # 2. 净利润对比图表
-            profit_chart = self._create_profit_comparison_chart(data["companies"])
-            charts.append(profit_chart)
+            # 营收对比图表
+            revenue_chart = self._create_chart("revenue_comparison", "公司营收对比分析", "bar", companies, self._extract_revenue_data)
+            revenue_chart["type"] = "echarts"
+            visualizations.append(revenue_chart)
 
-            # 3. 业务构成饼图
-            business_pie_chart = self._create_business_composition_chart(data["companies"])
-            charts.append(business_pie_chart)
+            # 净利润对比图表
+            profit_chart = self._create_chart("profit_comparison", "净利润对比分析", "line", companies, self._extract_profit_data)
+            profit_chart["type"] = "echarts"
+            visualizations.append(profit_chart)
 
-            # 4. 门店数量对比图表
-            store_chart = self._create_store_comparison_chart(data["companies"])
-            charts.append(store_chart)
-
-        # 5. 增长趋势图表
-        if "companies" in data:
-            growth_chart = self._create_growth_trend_chart(data["companies"])
-            charts.append(growth_chart)
+            # 增长趋势图表
+            growth_chart = self._create_chart("growth_trend", "营收增长趋势", "line", companies, self._extract_revenue_data)
+            growth_chart["type"] = "echarts"
+            visualizations.append(growth_chart)
 
         return {
-            "cards": cards,
-            "charts": charts,
-            "layout": "mixed",  # 标识为混合布局
-            "total_items": len(cards) + len(charts),
-            "description": "基于数据结构生成的混合可视化展示（Card卡片 + ECharts图表）"
+            "visualizations": visualizations,
+            "total_items": len(visualizations),
+            "description": "基于数据结构生成的可视化展示（Card卡片 + ECharts图表）"
         }
 
-    def _generate_multiple_charts(self, data: dict) -> dict:
-        """生成多个图表配置（保留原有方法以兼容）"""
-        charts = []
 
-        # 1. 营收对比图表
-        if "companies" in data and len(data["companies"]) > 0:
-            revenue_chart = self._create_revenue_comparison_chart(data["companies"])
-            charts.append(revenue_chart)
-
-            # 2. 净利润对比图表
-            profit_chart = self._create_profit_comparison_chart(data["companies"])
-            charts.append(profit_chart)
-
-            # 3. 业务构成饼图
-            business_pie_chart = self._create_business_composition_chart(data["companies"])
-            charts.append(business_pie_chart)
-
-            # 4. 门店数量对比图表
-            store_chart = self._create_store_comparison_chart(data["companies"])
-            charts.append(store_chart)
-
-        # 5. 增长趋势图表
-        if "companies" in data:
-            growth_chart = self._create_growth_trend_chart(data["companies"])
-            charts.append(growth_chart)
-
+    def _create_chart(self, chart_id: str, title: str, chart_type: str, companies: list, data_extractor) -> dict:
+        """通用图表创建方法"""
         return {
-            "charts": charts,
-            "layout": "multi_chart",  # 标识为多图表布局
-            "total_charts": len(charts),
-            "description": "基于数据结构生成的多个ECharts图表配置"
-        }
-
-    def _create_revenue_comparison_chart(self, companies: list) -> dict:
-        """创建营收对比图表"""
-        return {
-            "chart_id": "revenue_comparison",
-            "title": "公司营收对比分析",
-            "type": "bar",
+            "chart_id": chart_id,
+            "title": title,
+            "type": chart_type,
             "config": {
-                "title": {"text": "公司营收对比分析", "left": "center"},
+                "title": {"text": title, "left": "center"},
                 "tooltip": {"trigger": "axis"},
                 "legend": {"data": [company["name"] for company in companies]},
                 "xAxis": {"type": "category", "data": ["2022年", "2023年", "2024年"]},
-                "yAxis": {"type": "value", "name": "营收(亿元)"},
+                "yAxis": {"type": "value", "name": "数值"},
                 "series": [
                     {
                         "name": company["name"],
-                        "type": "bar",
-                        "data": self._extract_revenue_data(company),
-                        "itemStyle": {"color": f"#{hash(company['name']) % 0xffffff:06x}"}
-                    }
-                    for company in companies
-                ]
-            }
-        }
-
-    def _create_profit_comparison_chart(self, companies: list) -> dict:
-        """创建净利润对比图表"""
-        return {
-            "chart_id": "profit_comparison",
-            "title": "净利润对比分析",
-            "type": "line",
-            "config": {
-                "title": {"text": "净利润对比分析", "left": "center"},
-                "tooltip": {"trigger": "axis"},
-                "legend": {"data": [company["name"] for company in companies]},
-                "xAxis": {"type": "category", "data": ["2022年", "2023年", "2024年"]},
-                "yAxis": {"type": "value", "name": "净利润(亿元)"},
-                "series": [
-                    {
-                        "name": company["name"],
-                        "type": "line",
-                        "data": self._extract_profit_data(company),
-                        "itemStyle": {"color": f"#{hash(company['name']) % 0xffffff:06x}"}
-                    }
-                    for company in companies
-                ]
-            }
-        }
-
-    def _create_business_composition_chart(self, companies: list) -> dict:
-        """创建业务构成饼图"""
-        return {
-            "chart_id": "business_composition",
-            "title": "业务构成分析",
-            "type": "pie",
-            "config": {
-                "title": {"text": "业务构成分析", "left": "center"},
-                "tooltip": {"trigger": "item"},
-                "series": [{
-                    "name": "业务构成",
-                    "type": "pie",
-                    "radius": "50%",
-                    "data": self._extract_business_data(companies),
-                    "emphasis": {
-                        "itemStyle": {
-                            "shadowBlur": 10,
-                            "shadowOffsetX": 0,
-                            "shadowColor": "rgba(0, 0, 0, 0.5)"
-                        }
-                    }
-                }]
-            }
-        }
-
-    def _create_store_comparison_chart(self, companies: list) -> dict:
-        """创建门店数量对比图表"""
-        return {
-            "chart_id": "store_comparison",
-            "title": "门店数量对比",
-            "type": "bar",
-            "config": {
-                "title": {"text": "门店数量对比", "left": "center"},
-                "tooltip": {"trigger": "axis"},
-                "xAxis": {"type": "category", "data": [company["name"] for company in companies]},
-                "yAxis": {"type": "value", "name": "门店数量(家)"},
-                "series": [{
-                    "name": "门店数量",
-                    "type": "bar",
-                    "data": [self._extract_store_count(company) for company in companies],
-                    "itemStyle": {"color": "#5470c6"}
-                }]
-            }
-        }
-
-    def _create_growth_trend_chart(self, companies: list) -> dict:
-        """创建增长趋势图表"""
-        return {
-            "chart_id": "growth_trend",
-            "title": "营收增长趋势",
-            "type": "line",
-            "config": {
-                "title": {"text": "营收增长趋势", "left": "center"},
-                "tooltip": {"trigger": "axis"},
-                "legend": {"data": [company["name"] for company in companies]},
-                "xAxis": {"type": "category", "data": ["2022年", "2023年", "2024年"]},
-                "yAxis": {"type": "value", "name": "营收(亿元)"},
-                "series": [
-                    {
-                        "name": company["name"],
-                        "type": "line",
-                        "data": self._extract_revenue_data(company),
-                        "smooth": True,
+                        "type": chart_type,
+                        "data": data_extractor(company),
                         "itemStyle": {"color": f"#{hash(company['name']) % 0xffffff:06x}"}
                     }
                     for company in companies
@@ -274,32 +143,6 @@ class VisualizationTool(BaseTool):
             ]
         return [0, 0, 0]
 
-    def _extract_business_data(self, companies: list) -> list:
-        """提取业务构成数据"""
-        business_data = []
-        for company in companies:
-            if "business_segments" in company:
-                for segment in company["business_segments"]:
-                    if segment["name"] == "量贩零食业务":
-                        business_data.append({
-                            "name": f"{company['name']}-{segment['name']}",
-                            "value": 99
-                        })
-                    elif segment["name"] == "食用菌业务":
-                        business_data.append({
-                            "name": f"{company['name']}-{segment['name']}",
-                            "value": 1
-                        })
-        return business_data
-
-    def _extract_store_count(self, company: dict) -> int:
-        """提取门店数量"""
-        if "operational_data" in company and "store_count" in company["operational_data"]:
-            store_count = company["operational_data"]["store_count"]
-            if isinstance(store_count, str) and "家" in store_count:
-                return int(store_count.replace("家", ""))
-            return int(store_count)
-        return 0
 
     def _create_summary_card(self, data: dict) -> dict:
         """创建核心摘要卡片"""
@@ -341,6 +184,6 @@ class VisualizationTool(BaseTool):
             "card_id": "key_data_card",
             "title": "关键数据",
             "summary": "核心数据指标和重要发现",
-            "key_points": key_points[:5],  # 限制显示前5个关键点
-            "insights": insights[:3]  # 限制显示前3个洞察
+            "key_points": key_points[:5],
+            "insights": insights[:3]
         }

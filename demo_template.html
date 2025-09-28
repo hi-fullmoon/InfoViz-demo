@@ -233,60 +233,56 @@
 
       let itemIndex = 0;
 
-      // 处理 Card 卡片
-      if (visualizationData.cards && visualizationData.cards.length > 0) {
-        visualizationData.cards.forEach((card, index) => {
-          const cardDiv = document.createElement('div');
-          cardDiv.className = 'card-container';
-          cardDiv.innerHTML = `
-            <div class="card-title">${card.title}</div>
-            <div class="card-content">
-              <div class="card-summary">${card.summary}</div>
-              <div class="key-points">
-                <h4>🔑 关键要点</h4>
-                <ul>
-                  ${card.key_points.map(point => `<li>${point}</li>`).join('')}
-                </ul>
+      // 处理所有可视化项
+      if (visualizationData.visualizations && visualizationData.visualizations.length > 0) {
+        visualizationData.visualizations.forEach((item, index) => {
+          if (item.type === 'card') {
+            // 处理 Card 卡片
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'card-container';
+            cardDiv.innerHTML = `
+              <div class="card-title">${item.title}</div>
+              <div class="card-content">
+                <div class="card-summary">${item.summary}</div>
+                <div class="key-points">
+                  <h4>🔑 关键要点</h4>
+                  <ul>
+                    ${item.key_points.map(point => `<li>${point}</li>`).join('')}
+                  </ul>
+                </div>
+                <div class="insights">
+                  <h4>💡 核心洞察</h4>
+                  <ul>
+                    ${item.insights.map(insight => `<li>${insight}</li>`).join('')}
+                  </ul>
+                </div>
               </div>
-              <div class="insights">
-                <h4>💡 核心洞察</h4>
-                <ul>
-                  ${card.insights.map(insight => `<li>${insight}</li>`).join('')}
-                </ul>
-              </div>
-            </div>
-          `;
-          container.appendChild(cardDiv);
+            `;
+            container.appendChild(cardDiv);
+          } else if (item.type === 'echarts') {
+            // 处理 ECharts 图表
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chart-container';
+            chartDiv.innerHTML = `
+              <div class="chart-title">${item.title}</div>
+              <div id="chart-${itemIndex}" class="chart"></div>
+            `;
+            container.appendChild(chartDiv);
+
+            // 初始化图表
+            const chartInstance = echarts.init(document.getElementById(`chart-${itemIndex}`));
+            chartInstance.setOption(item.config);
+
+            // 响应式处理
+            window.addEventListener('resize', () => {
+              chartInstance.resize();
+            });
+
+            itemIndex++;
+          }
         });
-      }
-
-      // 处理 ECharts 图表
-      if (visualizationData.charts && visualizationData.charts.length > 0) {
-        visualizationData.charts.forEach((chart, index) => {
-          const chartDiv = document.createElement('div');
-          chartDiv.className = 'chart-container';
-          chartDiv.innerHTML = `
-            <div class="chart-title">${chart.title}</div>
-            <div id="chart-${itemIndex}" class="chart"></div>
-          `;
-          container.appendChild(chartDiv);
-
-          // 初始化图表
-          const chartInstance = echarts.init(document.getElementById(`chart-${itemIndex}`));
-          chartInstance.setOption(chart.config);
-
-          // 响应式处理
-          window.addEventListener('resize', () => {
-            chartInstance.resize();
-          });
-
-          itemIndex++;
-        });
-      }
-
-      // 如果没有卡片和图表，显示提示信息
-      if ((!visualizationData.cards || visualizationData.cards.length === 0) &&
-          (!visualizationData.charts || visualizationData.charts.length === 0)) {
+      } else {
+        // 如果没有可视化内容，显示提示信息
         container.innerHTML = '<div class="loading">暂无可视化内容</div>';
       }
     }

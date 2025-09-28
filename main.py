@@ -10,10 +10,7 @@ from crewai import Agent, Task, Crew, Process
 from dotenv import load_dotenv
 from tools import ContentExtractionTool, DataStructuringTool, VisualizationTool
 from datetime import datetime
-try:
-    from langchain_openai import ChatOpenAI
-except ImportError:
-    from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 
 # 加载环境变量
 load_dotenv()
@@ -98,17 +95,19 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
                    "4. 为 ECharts 图表选择最适合的类型（柱状图、折线图、饼图、散点图等）\n"
                    "5. 确保不同可视化类型间有逻辑关联，形成完整的数据分析报告\n",
         agent=visualizer,
-        expected_output="包含多种可视化类型的JSON对象：\n"
+        expected_output="包含可视化项的JSON对象：\n"
+                       "visualizations: 可视化项数组，每个项包含：\n"
                        "1. Card 卡片配置：\n"
+                       "   - type: 'card'\n"
                        "   - card_id: 卡片唯一标识\n"
                        "   - title: 卡片标题\n"
                        "   - summary: 摘要内容\n"
                        "   - key_points: 关键数据点列表\n"
                        "   - insights: 核心洞察\n"
                        "2. ECharts 图表配置：\n"
+                       "   - type: 'echarts'\n"
                        "   - chart_id: 图表唯一标识\n"
                        "   - title: 图表标题\n"
-                       "   - type: 图表类型\n"
                        "   - config: 完整的ECharts配置，不需要包含color相关配置，不允许出现javascript函数\n",
         context=[structuring_task]
     )
@@ -132,11 +131,9 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
 def main():
     """主程序入口"""
     print("🚀 启动基于 CrewAI 和 DeepSeek 的信息可视化应用")
-    print("=" * 50)
 
     if not os.getenv("DEEPSEEK_API_KEY"):
         print("❌ 请设置 DEEPSEEK_API_KEY 环境变量")
-        print("💡 创建 .env 文件并添加: DEEPSEEK_API_KEY=your_api_key_here")
         return
 
     try:
@@ -148,27 +145,23 @@ def main():
         return
 
     print("\n🔄 开始 CrewAI 三阶段处理...")
-    print("阶段1: 内容提炼 (研究员)")
-    print("阶段2: 信息分析与结构化 (分析师)")
-    print("阶段3: 可视化决策与执行 (可视化工程师)")
-    print("-" * 50)
 
     try:
         results = process_text_with_crewai(text_content)
-
         print("\n✅ 处理完成！")
 
+        # 保存结果
         serializable_results = {
             "extraction_result": str(results.get('extraction_result', '')),
             "structuring_result": str(results.get('structuring_result', '')),
             "visualization_result": str(results.get('visualization_result', '')),
             "final_result": str(results.get('final_result', '')),
-            "timestamp": str(__import__('datetime').datetime.now())
+            "timestamp": str(datetime.now())
         }
 
         with open('visualization_result.json', 'w', encoding='utf-8') as f:
             json.dump(serializable_results, f, ensure_ascii=False, indent=2)
-        print(f"\n💾 结果已保存到: visualization_result.json")
+        print(f"💾 结果已保存到: visualization_result.json")
 
     except Exception as e:
         print(f"❌ 处理过程中出现错误: {str(e)}")
