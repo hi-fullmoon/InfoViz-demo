@@ -7,8 +7,8 @@ import os
 import json
 from typing import Dict, Any
 from crewai import Agent, Task, Crew, Process
-from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from tools import ContentExtractionTool, DataStructuringTool, VisualizationTool
 try:
     from langchain_openai import ChatOpenAI
 except ImportError:
@@ -27,53 +27,6 @@ def get_deepseek_llm():
         temperature=0.1
     )
 
-class ContentExtractionTool(BaseTool):
-    """内容提炼工具"""
-    name: str = "content_extraction"
-    description: str = "从文本中提取核心论点、关键数据和重要实体"
-
-    def _run(self, text: str) -> str:
-        """执行内容提炼"""
-        return f"已从文本中提取关键信息，文本长度: {len(text)} 字符"
-
-class DataStructuringTool(BaseTool):
-    """数据结构化工具"""
-    name: str = "data_structuring"
-    description: str = "将提取的信息转换为结构化数据格式"
-
-    def _run(self, extracted_content: str) -> str:
-        """执行数据结构化"""
-        structured_data = {
-            "entities": ["万辰集团", "量贩零食", "营收", "净利润"],
-            "metrics": {
-                "revenue_2022": "5.49亿元",
-                "revenue_2024": "323亿元",
-                "profit_growth": "50358.8%"
-            },
-            "categories": ["财务数据", "业务数据", "市场数据"]
-        }
-        return json.dumps(structured_data, ensure_ascii=False, indent=2)
-
-class VisualizationTool(BaseTool):
-    """可视化工具"""
-    name: str = "visualization"
-    description: str = "根据数据结构生成 ECharts 配置"
-
-    def _run(self, structured_data: str) -> str:
-        """执行可视化配置生成"""
-        echarts_config = {
-            "title": {"text": "万辰集团营收增长趋势", "left": "center"},
-            "tooltip": {"trigger": "axis"},
-            "xAxis": {"type": "category", "data": ["2022年", "2024年"]},
-            "yAxis": {"type": "value", "name": "营收(亿元)"},
-            "series": [{
-                "name": "营收",
-                "type": "bar",
-                "data": [5.49, 323],
-                "itemStyle": {"color": "#5470c6"}
-            }]
-        }
-        return json.dumps(echarts_config, ensure_ascii=False, indent=2)
 
 # 创建工具实例
 content_extraction_tool = ContentExtractionTool()
@@ -104,8 +57,13 @@ analyst = Agent(
 
 visualizer = Agent(
     role="可视化工程师",
-    goal="根据数据结构选择最合适的图表类型，并生成 ECharts 配置",
-    backstory="你是一位可视化专家，精通各种图表类型。",
+    goal="根据数据结构智能选择多个最合适的图表类型，生成多个 ECharts 配置，确保数据故事完整性和可视化效果最佳",
+    backstory="你是一位资深的数据可视化专家，精通各种图表类型和可视化最佳实践。你能够：\n"
+              "1. 分析数据特征，识别关键洞察点\n"
+              "2. 选择最适合的图表类型组合来讲述数据故事\n"
+              "3. 生成多个独立的ECharts配置，每个图表都有明确的分析目标\n"
+              "4. 确保图表间的逻辑关联性和视觉一致性\n"
+              "5. 考虑用户交互体验和图表可读性",
     tools=[visualization_tool],
     llm=deepseek_llm,
     verbose=True
@@ -128,9 +86,21 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
     )
 
     visualization_task = Task(
-        description="基于分析师提供的结构化数据，分析数据特征并生成 ECharts 配置",
+        description="基于分析师提供的结构化数据，进行深度分析并生成多个 ECharts 图表配置。\n"
+                   "请按以下步骤执行：\n"
+                   "1. 分析数据结构，识别关键数据维度和关系\n"
+                   "2. 确定需要多少个图表来完整展示数据故事\n"
+                   "3. 为每个图表选择最适合的类型（柱状图、折线图、饼图、散点图等）\n"
+                   "4. 确保图表间有逻辑关联，形成完整的数据分析报告\n"
+                   "5. 生成多个独立的ECharts配置，每个配置都应该是完整可用的\n"
+                   "6. 考虑图表的视觉一致性和用户体验",
         agent=visualizer,
-        expected_output="完整的 ECharts 配置 JSON，可直接用于前端渲染",
+        expected_output="包含多个ECharts图表配置的JSON对象，每个图表都有：\n"
+                       "- chart_id: 图表唯一标识\n"
+                       "- title: 图表标题\n"
+                       "- type: 图表类型\n"
+                       "- config: 完整的ECharts配置\n"
+                       "同时包含布局信息和图表总数",
         context=[structuring_task]
     )
 
