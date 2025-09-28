@@ -144,10 +144,10 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
     result = crew.kickoff()
 
     return {
-        "extraction_result": extraction_task.output,
-        "structuring_result": structuring_task.output,
-        "visualization_result": visualization_task.output,
-        "final_result": result
+        "extraction_result": str(extraction_task.output) if extraction_task.output else "未完成",
+        "structuring_result": str(structuring_task.output) if structuring_task.output else "未完成",
+        "visualization_result": str(visualization_task.output) if visualization_task.output else "未完成",
+        "final_result": str(result) if result else "未完成"
     }
 
 def main():
@@ -178,14 +178,18 @@ def main():
         results = process_text_with_crewai(text_content)
 
         print("\n✅ 处理完成！")
-        print("=" * 50)
 
-        print("\n📊 可视化配置 (ECharts):")
-        print("-" * 30)
-        print(results.get('visualization_result', '未生成'))
+        # 确保所有结果都是字符串格式
+        serializable_results = {
+            "extraction_result": str(results.get('extraction_result', '未完成')),
+            "structuring_result": str(results.get('structuring_result', '未完成')),
+            "visualization_result": str(results.get('visualization_result', '未完成')),
+            "final_result": str(results.get('final_result', '未完成')),
+            "timestamp": str(__import__('datetime').datetime.now())
+        }
 
         with open('visualization_result.json', 'w', encoding='utf-8') as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
+            json.dump(serializable_results, f, ensure_ascii=False, indent=2)
         print(f"\n💾 结果已保存到: visualization_result.json")
 
     except Exception as e:
