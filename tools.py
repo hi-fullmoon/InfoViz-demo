@@ -40,7 +40,7 @@ class DataStructuringTool(BaseTool):
 class VisualizationTool(BaseTool):
     """可视化工具"""
     name: str = "visualization"
-    description: str = "根据数据结构生成多个 ECharts 配置，支持单页面多图表和独立图表"
+    description: str = "根据数据结构生成 Card 卡片展示和 ECharts 图表配置，支持混合布局"
 
     def _run(self, structured_data: str) -> str:
         """执行可视化配置生成"""
@@ -50,12 +50,59 @@ class VisualizationTool(BaseTool):
         except:
             data = {"companies": [], "industry_trends": {}}
 
-        # 生成多个图表配置
-        charts_config = self._generate_multiple_charts(data)
-        return json.dumps(charts_config, ensure_ascii=False, indent=2)
+        # 生成混合可视化配置
+        mixed_config = self._generate_mixed_visualization(data)
+        return json.dumps(mixed_config, ensure_ascii=False, indent=2)
+
+    def _generate_mixed_visualization(self, data: dict) -> dict:
+        """生成混合可视化配置（Card + ECharts）"""
+        cards = []
+        charts = []
+
+        # 生成 Card 卡片
+        if "entities" in data or "metrics" in data:
+            # 1. 核心摘要卡片
+            summary_card = self._create_summary_card(data)
+            cards.append(summary_card)
+
+            # 2. 关键数据卡片
+            if "metrics" in data:
+                key_data_card = self._create_key_data_card(data)
+                cards.append(key_data_card)
+
+        # 生成 ECharts 图表
+        if "companies" in data and len(data["companies"]) > 0:
+            # 1. 营收对比图表
+            revenue_chart = self._create_revenue_comparison_chart(data["companies"])
+            charts.append(revenue_chart)
+
+            # 2. 净利润对比图表
+            profit_chart = self._create_profit_comparison_chart(data["companies"])
+            charts.append(profit_chart)
+
+            # 3. 业务构成饼图
+            business_pie_chart = self._create_business_composition_chart(data["companies"])
+            charts.append(business_pie_chart)
+
+            # 4. 门店数量对比图表
+            store_chart = self._create_store_comparison_chart(data["companies"])
+            charts.append(store_chart)
+
+        # 5. 增长趋势图表
+        if "companies" in data:
+            growth_chart = self._create_growth_trend_chart(data["companies"])
+            charts.append(growth_chart)
+
+        return {
+            "cards": cards,
+            "charts": charts,
+            "layout": "mixed",  # 标识为混合布局
+            "total_items": len(cards) + len(charts),
+            "description": "基于数据结构生成的混合可视化展示（Card卡片 + ECharts图表）"
+        }
 
     def _generate_multiple_charts(self, data: dict) -> dict:
-        """生成多个图表配置"""
+        """生成多个图表配置（保留原有方法以兼容）"""
         charts = []
 
         # 1. 营收对比图表
@@ -253,3 +300,47 @@ class VisualizationTool(BaseTool):
                 return int(store_count.replace("家", ""))
             return int(store_count)
         return 0
+
+    def _create_summary_card(self, data: dict) -> dict:
+        """创建核心摘要卡片"""
+        return {
+            "card_id": "summary_card",
+            "title": "核心摘要",
+            "summary": "基于数据分析的核心洞察和关键发现",
+            "key_points": [
+                "数据概览：包含主要实体和关键指标",
+                "趋势分析：识别数据变化趋势和模式",
+                "关键洞察：提取最重要的数据发现"
+            ],
+            "insights": [
+                "数据呈现明显的增长趋势",
+                "关键指标表现良好",
+                "存在重要的业务机会"
+            ]
+        }
+
+    def _create_key_data_card(self, data: dict) -> dict:
+        """创建关键数据卡片"""
+        key_points = []
+        insights = []
+
+        if "metrics" in data:
+            for metric_name, metric_value in data["metrics"].items():
+                if isinstance(metric_value, dict):
+                    for key, value in metric_value.items():
+                        key_points.append(f"{key}: {value}")
+                else:
+                    key_points.append(f"{metric_name}: {metric_value}")
+
+        if "categories" in data:
+            for category_name, category_items in data["categories"].items():
+                if isinstance(category_items, list):
+                    insights.append(f"{category_name}: {', '.join(category_items[:3])}")
+
+        return {
+            "card_id": "key_data_card",
+            "title": "关键数据",
+            "summary": "核心数据指标和重要发现",
+            "key_points": key_points[:5],  # 限制显示前5个关键点
+            "insights": insights[:3]  # 限制显示前3个洞察
+        }

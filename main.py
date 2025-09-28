@@ -58,13 +58,14 @@ analyst = Agent(
 
 visualizer = Agent(
     role="可视化工程师",
-    goal="根据数据结构智能选择多个最合适的图表类型，生成多个 ECharts 配置，确保数据故事完整性和可视化效果最佳",
+    goal="根据数据结构智能选择最合适的可视化类型，生成 Card 卡片展示和 ECharts 图表配置，确保数据故事完整性和可视化效果最佳",
     backstory="你是一位资深的数据可视化专家，精通各种图表类型和可视化最佳实践。你能够：\n"
               "1. 分析数据特征，识别关键洞察点\n"
-              "2. 选择最适合的图表类型组合来讲述数据故事\n"
-              "3. 生成多个独立的ECharts配置，每个图表都有明确的分析目标\n"
-              "4. 确保图表间的逻辑关联性和视觉一致性\n"
-              "5. 考虑用户交互体验和图表可读性",
+              "2. 智能选择最适合的可视化类型：Card 卡片展示（适合摘要信息）或 ECharts 图表（适合数据可视化）\n"
+              "3. 生成 Card 卡片：包含标题、摘要、关键数据点，适合快速信息概览\n"
+              "4. 生成 ECharts 配置：柱状图、折线图、饼图、雷达图等，适合详细数据分析\n"
+              "5. 确保不同可视化类型间的逻辑关联性和视觉一致性\n"
+              "6. 考虑用户交互体验和内容可读性",
     tools=[visualization_tool],
     llm=deepseek_llm,
     verbose=True
@@ -87,21 +88,28 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
     )
 
     visualization_task = Task(
-        description="基于分析师提供的结构化数据，进行深度分析并生成多个 ECharts 图表配置。\n"
+        description="基于分析师提供的结构化数据，进行深度分析并生成多种类型的可视化展示。\n"
                    "请按以下步骤执行：\n"
                    "1. 分析数据结构，识别关键数据维度和关系\n"
-                   "2. 确定需要多少个图表来完整展示数据故事\n"
-                   "3. 为每个图表选择最适合的类型（柱状图、折线图、饼图、散点图等）\n"
-                   "4. 确保图表间有逻辑关联，形成完整的数据分析报告\n"
-                   "5. 生成多个独立的ECharts配置，每个配置都应该是完整可用的\n"
-                   "6. 考虑图表的视觉一致性和用户体验",
+                   "2. 智能选择可视化类型：\n"
+                   "   - Card 卡片：适合展示摘要信息、关键数据点、核心论点\n"
+                   "   - ECharts 图表：适合展示详细数据分析和趋势\n"
+                   "3. 为 Card 卡片生成：标题、摘要、关键数据点、核心洞察\n"
+                   "4. 为 ECharts 图表选择最适合的类型（柱状图、折线图、饼图、散点图等）\n"
+                   "5. 确保不同可视化类型间有逻辑关联，形成完整的数据分析报告\n",
         agent=visualizer,
-        expected_output="包含多个ECharts图表配置的JSON对象，每个图表都有：\n"
-                       "- chart_id: 图表唯一标识\n"
-                       "- title: 图表标题\n"
-                       "- type: 图表类型\n"
-                       "- config: 完整的ECharts配置，配置里不允许出现javascript函数\n"
-                       "同时包含布局信息和图表总数",
+        expected_output="包含多种可视化类型的JSON对象：\n"
+                       "1. Card 卡片配置：\n"
+                       "   - card_id: 卡片唯一标识\n"
+                       "   - title: 卡片标题\n"
+                       "   - summary: 摘要内容\n"
+                       "   - key_points: 关键数据点列表\n"
+                       "   - insights: 核心洞察\n"
+                       "2. ECharts 图表配置：\n"
+                       "   - chart_id: 图表唯一标识\n"
+                       "   - title: 图表标题\n"
+                       "   - type: 图表类型\n"
+                       "   - config: 完整的ECharts配置，不需要包含color相关配置，不允许出现javascript函数\n",
         context=[structuring_task]
     )
 

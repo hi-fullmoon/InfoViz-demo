@@ -69,33 +69,34 @@
       line-height: 1.6;
     }
 
-    .charts-grid {
+    .visualization-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
     }
 
-    .chart-container {
+    .chart-container, .card-container {
       background: white;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-      padding: 10px;
+      padding: 20px;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       flex: 1 1 600px;
       min-width: 300px;
       max-width: 800px;
     }
 
-    .chart-container:hover {
+    .chart-container:hover, .card-container:hover {
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
     }
 
-    .chart-title {
+    .chart-title, .card-title {
       font-size: 1.3em;
       font-weight: 600;
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       text-align: center;
       padding-bottom: 10px;
       border-bottom: 2px solid #f0f0f0;
@@ -104,6 +105,73 @@
     .chart {
       width: 100%;
       height: 400px;
+    }
+
+    /* Card 卡片样式 */
+    .card-content {
+      padding: 15px 0;
+    }
+
+    .card-summary {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+      font-size: 1.1em;
+      line-height: 1.6;
+      color: #555;
+    }
+
+    .key-points {
+      margin-bottom: 15px;
+    }
+
+    .key-points h4 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .key-points ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .key-points li {
+      background: #e3f2fd;
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border-left: 3px solid #2196f3;
+      font-size: 0.95em;
+    }
+
+    .insights {
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #ff9800;
+    }
+
+    .insights h4 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .insights ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .insights li {
+      background: #fff8e1;
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border-left: 3px solid #ff9800;
+      font-size: 0.95em;
     }
 
     .footer {
@@ -140,8 +208,8 @@
         <p>{{description}}</p>
       </div>
 
-      <div id="charts-container" class="charts-grid">
-        <!-- 图表将通过JavaScript动态生成 -->
+      <div id="visualization-container" class="visualization-grid">
+        <!-- 可视化内容将通过JavaScript动态生成 -->
       </div>
     </div>
 
@@ -151,40 +219,80 @@
   </div>
 
   <script>
-    // 图表数据
-    const chartsData = {{charts_json}};
+    // 可视化数据
+    const visualizationData = {{charts_json}};
 
-    // 初始化所有图表
-    function initCharts() {
-      const container = document.getElementById('charts-container');
+    // 初始化所有可视化内容
+    function initVisualization() {
+      const container = document.getElementById('visualization-container');
 
-      if (!chartsData || !chartsData.charts || chartsData.charts.length === 0) {
-        container.innerHTML = '<div class="loading">暂无图表数据</div>';
+      if (!visualizationData) {
+        container.innerHTML = '<div class="loading">暂无可视化数据</div>';
         return;
       }
 
-      chartsData.charts.forEach((chart, index) => {
-        // 创建图表容器
-        const chartDiv = document.createElement('div');
-        chartDiv.className = 'chart-container';
-        chartDiv.innerHTML = `
-                    <div id="chart-${index}" class="chart"></div>
-                `;
-        container.appendChild(chartDiv);
+      let itemIndex = 0;
 
-        // 初始化图表
-        const chartInstance = echarts.init(document.getElementById(`chart-${index}`));
-        chartInstance.setOption(chart.config);
-
-        // 响应式处理
-        window.addEventListener('resize', () => {
-          chartInstance.resize();
+      // 处理 Card 卡片
+      if (visualizationData.cards && visualizationData.cards.length > 0) {
+        visualizationData.cards.forEach((card, index) => {
+          const cardDiv = document.createElement('div');
+          cardDiv.className = 'card-container';
+          cardDiv.innerHTML = `
+            <div class="card-title">${card.title}</div>
+            <div class="card-content">
+              <div class="card-summary">${card.summary}</div>
+              <div class="key-points">
+                <h4>🔑 关键要点</h4>
+                <ul>
+                  ${card.key_points.map(point => `<li>${point}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="insights">
+                <h4>💡 核心洞察</h4>
+                <ul>
+                  ${card.insights.map(insight => `<li>${insight}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          `;
+          container.appendChild(cardDiv);
         });
-      });
+      }
+
+      // 处理 ECharts 图表
+      if (visualizationData.charts && visualizationData.charts.length > 0) {
+        visualizationData.charts.forEach((chart, index) => {
+          const chartDiv = document.createElement('div');
+          chartDiv.className = 'chart-container';
+          chartDiv.innerHTML = `
+            <div class="chart-title">${chart.title}</div>
+            <div id="chart-${itemIndex}" class="chart"></div>
+          `;
+          container.appendChild(chartDiv);
+
+          // 初始化图表
+          const chartInstance = echarts.init(document.getElementById(`chart-${itemIndex}`));
+          chartInstance.setOption(chart.config);
+
+          // 响应式处理
+          window.addEventListener('resize', () => {
+            chartInstance.resize();
+          });
+
+          itemIndex++;
+        });
+      }
+
+      // 如果没有卡片和图表，显示提示信息
+      if ((!visualizationData.cards || visualizationData.cards.length === 0) &&
+          (!visualizationData.charts || visualizationData.charts.length === 0)) {
+        container.innerHTML = '<div class="loading">暂无可视化内容</div>';
+      }
     }
 
-    // 页面加载完成后初始化图表
-    document.addEventListener('DOMContentLoaded', initCharts);
+    // 页面加载完成后初始化可视化内容
+    document.addEventListener('DOMContentLoaded', initVisualization);
   </script>
 </body>
 

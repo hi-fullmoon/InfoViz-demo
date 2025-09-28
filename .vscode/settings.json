@@ -1,4 +1,8 @@
 {
-  "cSpell.words": ["deepseek", "dotenv"],
+  "cSpell.words": [
+    "crewai",
+    "deepseek",
+    "dotenv"
+  ],
   "editor.formatOnSave": false
 }

@@ -69,33 +69,34 @@
       line-height: 1.6;
     }
 
-    .charts-grid {
+    .visualization-grid {
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
     }
 
-    .chart-container {
+    .chart-container, .card-container {
       background: white;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-      padding: 10px;
+      padding: 20px;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       flex: 1 1 600px;
       min-width: 300px;
       max-width: 800px;
     }
 
-    .chart-container:hover {
+    .chart-container:hover, .card-container:hover {
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
     }
 
-    .chart-title {
+    .chart-title, .card-title {
       font-size: 1.3em;
       font-weight: 600;
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       text-align: center;
       padding-bottom: 10px;
       border-bottom: 2px solid #f0f0f0;
@@ -104,6 +105,73 @@
     .chart {
       width: 100%;
       height: 400px;
+    }
+
+    /* Card 卡片样式 */
+    .card-content {
+      padding: 15px 0;
+    }
+
+    .card-summary {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+      font-size: 1.1em;
+      line-height: 1.6;
+      color: #555;
+    }
+
+    .key-points {
+      margin-bottom: 15px;
+    }
+
+    .key-points h4 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .key-points ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .key-points li {
+      background: #e3f2fd;
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border-left: 3px solid #2196f3;
+      font-size: 0.95em;
+    }
+
+    .insights {
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #ff9800;
+    }
+
+    .insights h4 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+
+    .insights ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .insights li {
+      background: #fff8e1;
+      padding: 8px 12px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border-left: 3px solid #ff9800;
+      font-size: 0.95em;
     }
 
     .footer {
@@ -137,54 +205,94 @@
     <div class="content">
       <div class="description">
         <h3>📊 分析概述</h3>
-        <p>中国外汇储备数据分析报告 - 包含趋势分析、月度变化、影响因素和历史对比四个核心图表</p>
+        <p>基于AI智能分析的数据可视化展示</p>
       </div>
 
-      <div id="charts-container" class="charts-grid">
-        <!-- 图表将通过JavaScript动态生成 -->
+      <div id="visualization-container" class="visualization-grid">
+        <!-- 可视化内容将通过JavaScript动态生成 -->
       </div>
     </div>
 
     <div class="footer">
-      <p>生成时间: <span class="timestamp">2025-09-28 20:28:09.600055</span></p>
+      <p>生成时间: <span class="timestamp">2025-09-28 23:18:00.039340</span></p>
     </div>
   </div>
 
   <script>
-    // 图表数据
-    const chartsData = {"charts":[{"chart_id":"trend_chart_1","title":"2025年中国外汇储备月度变化趋势","type":"line","config":{"title":{"text":"2025年中国外汇储备月度变化趋势","left":"center"},"tooltip":{"trigger":"axis"},"legend":{"data":["月度变化","累计变化"],"top":"10%"},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"月度变化","type":"line","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"markPoint":{"data":[{"type":"max","name":"最大值"},{"type":"min","name":"最小值"}]}},{"name":"累计变化","type":"line","data":[66.79,248.79,383.2,793.2,829.2,1150.87,898.99,1198.18],"markPoint":{"data":[{"type":"max","name":"最高累计"}]}}]}},{"chart_id":"monthly_change_2","title":"2025年各月外汇储备变化量","type":"bar","config":{"title":{"text":"2025年各月外汇储备变化量","left":"center"},"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"变化量","type":"bar","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"itemStyle":{"color":{"type":"linear","x":0,"y":0,"x2":0,"y2":1,"colorStops":[{"offset":0,"color":"#5470c6"},{"offset":1,"color":"#91cc75"}]}},"label":{"show":true,"position":"top"}}]}},{"chart_id":"factors_radar_3","title":"外汇储备变化影响因素分析","type":"radar","config":{"title":{"text":"外汇储备变化影响因素分析","left":"center"},"tooltip":{},"radar":{"indicator":[{"name":"美元指数下跌","max":100},{"name":"全球金融资产价格上涨","max":100},{"name":"非美元货币升值","max":100},{"name":"货币政策预期","max":100},{"name":"宏观经济数据","max":100}]},"series":[{"name":"影响程度","type":"radar","data":[{"value":[85,75,80,70,65],"name":"8月影响因素","areaStyle":{}}]}]}},{"chart_id":"historical_comparison_4","title":"外汇储备历史水平对比","type":"bar","config":{"title":{"text":"外汇储备历史水平对比","left":"center"},"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"legend":{"data":["外汇储备规模"],"top":"10%"},"grid":{"left":"3%","right":"4%","bottom":"3%","containLabel":true},"xAxis":{"type":"category","data":["2016年1月","2025年7月","2025年8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"外汇储备规模","type":"bar","data":[32300,32922.35,33221.54],"itemStyle":{"color":"#ee6666"},"label":{"show":true,"position":"top"},"markLine":{"data":[{"type":"average","name":"平均值"}]}}]}}],"layout":"grid_2x2","total_charts":4,"description":"中国外汇储备数据分析报告 - 包含趋势分析、月度变化、影响因素和历史对比四个核心图表"};
+    // 可视化数据
+    const visualizationData = {"visualizations":[{"type":"card","card_id":"foreign_reserve_summary_2025","title":"2025年8月中国外汇储备分析","summary":"我国外汇储备规模在2025年8月止跌回升，达到33221.54亿美元，创下2016年1月以来最高水平，月度增加299.19亿美元，环比增长0.91%。","key_points":["2025年8月外汇储备：33221.54亿美元","月度变化：+299.19亿美元","环比增长率：0.91%","创2016年1月以来最高水平"],"insights":["外汇储备止跌回升主要受主要经济体货币政策预期、宏观经济数据、美元指数下跌、全球金融资产价格上涨等因素影响","汇率折算和资产价格变化等因素综合作用导致外汇储备规模上升","外汇储备规模创新高表明中国防范化解各种冲击的能力继续提升"]},{"type":"line","chart_id":"monthly_foreign_reserve_trend_2025","title":"2025年中国外汇储备月度变化趋势","config":{"title":{"text":"2025年中国外汇储备月度变化趋势","left":"center"},"tooltip":{"trigger":"axis","formatter":"{b}: {c}亿美元"},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"]},"yAxis":{"type":"value","name":"变化金额(亿美元)"},"series":[{"name":"月度变化","type":"line","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"smooth":true,"markPoint":{"data":[{"type":"max","name":"最大值"},{"type":"min","name":"最小值"}]},"markLine":{"data":[{"type":"average","name":"平均值"}]}}]}},{"type":"bar","chart_id":"foreign_reserve_composition_analysis","title":"2025年外汇储备影响因素分析","config":{"title":{"text":"2025年外汇储备影响因素分析","left":"center"},"tooltip":{"trigger":"axis","axisPointer":{"type":"shadow"}},"legend":{"data":["影响因素"]},"xAxis":{"type":"category","data":["货币政策预期","宏观经济数据","美元指数下跌","全球资产价格上涨","汇率折算","资产价格变化"]},"yAxis":{"type":"value","name":"影响程度"},"series":[{"name":"影响因素","type":"bar","data":[85,75,90,80,70,65],"label":{"show":true,"position":"top"}}]}},{"type":"card","card_id":"key_entities_analysis","title":"重要实体与核心论点","summary":"分析涉及国家外汇管理局、中银证券全球首席经济学家管涛等重要实体，核心论点聚焦外汇储备变化的原因和意义。","key_points":["国家外汇管理局：主要监管机构","中银证券管涛：首席经济学家观点","主要经济体：货币政策影响","美元指数：关键影响因素"],"insights":["外汇储备变化受多重因素综合影响，需要综合分析","3.3万亿美元以上的储备规模为经济安全提供重要保障","防范化解冲击能力提升体现宏观经济韧性"]}]};
 
-    // 初始化所有图表
-    function initCharts() {
-      const container = document.getElementById('charts-container');
+    // 初始化所有可视化内容
+    function initVisualization() {
+      const container = document.getElementById('visualization-container');
 
-      if (!chartsData || !chartsData.charts || chartsData.charts.length === 0) {
-        container.innerHTML = '<div class="loading">暂无图表数据</div>';
+      if (!visualizationData) {
+        container.innerHTML = '<div class="loading">暂无可视化数据</div>';
         return;
       }
 
-      chartsData.charts.forEach((chart, index) => {
-        // 创建图表容器
-        const chartDiv = document.createElement('div');
-        chartDiv.className = 'chart-container';
-        chartDiv.innerHTML = `
-                    <div id="chart-${index}" class="chart"></div>
-                `;
-        container.appendChild(chartDiv);
+      let itemIndex = 0;
 
-        // 初始化图表
-        const chartInstance = echarts.init(document.getElementById(`chart-${index}`));
-        chartInstance.setOption(chart.config);
-
-        // 响应式处理
-        window.addEventListener('resize', () => {
-          chartInstance.resize();
+      // 处理 Card 卡片
+      if (visualizationData.cards && visualizationData.cards.length > 0) {
+        visualizationData.cards.forEach((card, index) => {
+          const cardDiv = document.createElement('div');
+          cardDiv.className = 'card-container';
+          cardDiv.innerHTML = `
+            <div class="card-title">${card.title}</div>
+            <div class="card-content">
+              <div class="card-summary">${card.summary}</div>
+              <div class="key-points">
+                <h4>🔑 关键要点</h4>
+                <ul>
+                  ${card.key_points.map(point => `<li>${point}</li>`).join('')}
+                </ul>
+              </div>
+              <div class="insights">
+                <h4>💡 核心洞察</h4>
+                <ul>
+                  ${card.insights.map(insight => `<li>${insight}</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          `;
+          container.appendChild(cardDiv);
         });
-      });
+      }
+
+      // 处理 ECharts 图表
+      if (visualizationData.charts && visualizationData.charts.length > 0) {
+        visualizationData.charts.forEach((chart, index) => {
+          const chartDiv = document.createElement('div');
+          chartDiv.className = 'chart-container';
+          chartDiv.innerHTML = `
+            <div class="chart-title">${chart.title}</div>
+            <div id="chart-${itemIndex}" class="chart"></div>
+          `;
+          container.appendChild(chartDiv);
+
+          // 初始化图表
+          const chartInstance = echarts.init(document.getElementById(`chart-${itemIndex}`));
+          chartInstance.setOption(chart.config);
+
+          // 响应式处理
+          window.addEventListener('resize', () => {
+            chartInstance.resize();
+          });
+
+          itemIndex++;
+        });
+      }
+
+      // 如果没有卡片和图表，显示提示信息
+      if ((!visualizationData.cards || visualizationData.cards.length === 0) &&
+          (!visualizationData.charts || visualizationData.charts.length === 0)) {
+        container.innerHTML = '<div class="loading">暂无可视化内容</div>';
+      }
     }
 
-    // 页面加载完成后初始化图表
-    document.addEventListener('DOMContentLoaded', initCharts);
+    // 页面加载完成后初始化可视化内容
+    document.addEventListener('DOMContentLoaded', initVisualization);
   </script>
 </body>
 
