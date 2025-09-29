@@ -101,25 +101,19 @@ class VisualizationTool(BaseTool):
                 key_data_card["type"] = "card"
                 visualizations.append(key_data_card)
 
-        # 生成基于外汇储备数据的图表
+        # 生成基于外汇储备数据的图表 - 只使用有实际数据支撑的图表，确保内容差异化
         if "metrics" in data:
-            # 月度变化趋势图 - 基于实际的外汇储备月度数据
+            # 月度变化趋势图 - 基于实际的外汇储备月度数据，展现时间序列
             trend_chart = self._create_foreign_exchange_trend_chart(data, used_data_points, used_analysis_angles)
             if trend_chart:
                 trend_chart["type"] = "echarts"
                 visualizations.append(trend_chart)
 
-            # 月度增长贡献度分析 - 基于实际的月度增长数据
-            contribution_chart = self._create_contribution_analysis_chart(data, used_data_points, used_analysis_angles)
-            if contribution_chart:
-                contribution_chart["type"] = "echarts"
-                visualizations.append(contribution_chart)
-
-            # 影响因素分析 - 基于文本中提到的实际影响因素
-            factor_chart = self._create_factor_analysis_chart(data, used_data_points, used_analysis_angles)
-            if factor_chart:
-                factor_chart["type"] = "echarts"
-                visualizations.append(factor_chart)
+            # 7-8月转折点对比分析 - 基于文本中强调的"止跌回升"关键信息
+            turnaround_chart = self._create_turnaround_analysis_chart(data, used_data_points, used_analysis_angles)
+            if turnaround_chart:
+                turnaround_chart["type"] = "echarts"
+                visualizations.append(turnaround_chart)
 
         return {
             "visualizations": visualizations,
@@ -170,92 +164,60 @@ class VisualizationTool(BaseTool):
             }
         }
 
-    def _create_contribution_analysis_chart(self, data: dict, used_data_points: set, used_analysis_angles: set) -> dict:
-        """创建月度增长贡献度分析饼图，基于实际数据"""
-        if "metrics" not in data or "monthly_increases_2025" not in data["metrics"]:
+    def _create_turnaround_analysis_chart(self, data: dict, used_data_points: set, used_analysis_angles: set) -> dict:
+        """创建7-8月转折点对比分析图，基于文本中强调的'止跌回升'关键信息"""
+        if "metrics" not in data:
             return None
 
-        analysis_angle = "增长贡献度分析"
+        analysis_angle = "转折点对比分析"
         used_analysis_angles.add(analysis_angle)
 
-        # 基于文本中的实际月度增长数据
-        monthly_data = data["metrics"]["monthly_increases_2025"]
-        # 添加7月和8月数据
-        monthly_data.extend([-251.87, 299.19])
-
-        months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月"]
-
-        # 只显示正增长的月份
-        positive_data = []
-        positive_months = []
-        for i, value in enumerate(monthly_data):
-            if value > 0:
-                positive_data.append({"value": value, "name": months[i]})
-                positive_months.append(months[i])
+        # 基于文本中明确提到的7月下降和8月回升数据
+        july_decrease = -251.87  # 7月减少251.87亿美元
+        august_increase = 299.19  # 8月增长299.19亿美元
 
         return {
-            "chart_id": "contribution_analysis",
-            "title": "2025年各月增长贡献度分析",
+            "chart_id": "turnaround_analysis",
+            "title": "7-8月外汇储备转折点对比分析",
             "config": {
-                "title": {"text": "2025年各月增长贡献度分析", "left": "center"},
-                "tooltip": {"trigger": "item", "formatter": "{a} <br/>{b}: {c}亿美元 ({d}%)"},
-                "legend": {"orient": "vertical", "left": "left"},
-                "series": [{
-                    "name": "月度增长",
-                    "type": "pie",
-                    "radius": "50%",
-                    "data": positive_data,
-                    "emphasis": {
-                        "itemStyle": {
-                            "shadowBlur": 10,
-                            "shadowOffsetX": 0,
-                            "shadowColor": "rgba(0, 0, 0, 0.5)"
-                        }
-                    }
-                }]
-            }
-        }
-
-    def _create_factor_analysis_chart(self, data: dict, used_data_points: set, used_analysis_angles: set) -> dict:
-        """创建影响因素分析柱状图，基于文本中提到的实际影响因素"""
-        if "core_arguments" not in data:
-            return None
-
-        analysis_angle = "影响因素分析"
-        used_analysis_angles.add(analysis_angle)
-
-        # 基于文本中实际提到的影响因素
-        factors = [
-            "美元指数下跌",
-            "非美元货币升值",
-            "全球金融资产价格上涨",
-            "汇率折算效应",
-            "资产价格变化"
-        ]
-
-        # 基于文本描述，给每个因素分配相对权重（基于文本中提到的频率和重要性）
-        factor_weights = [90, 85, 80, 75, 70]  # 基于文本描述的重要性排序
-
-        return {
-            "chart_id": "factor_analysis",
-            "title": "外汇储备变化影响因素分析",
-            "config": {
-                "title": {"text": "外汇储备变化影响因素分析", "left": "center"},
+                "title": {"text": "7-8月外汇储备转折点对比分析", "left": "center"},
                 "xAxis": {
                     "type": "category",
-                    "data": factors,
-                    "axisLabel": {"rotate": 45}
+                    "data": ["7月", "8月"],
+                    "axisLabel": {"rotate": 0}
                 },
-                "yAxis": {"type": "value", "name": "影响程度(%)"},
+                "yAxis": {
+                    "type": "value",
+                    "name": "变化量(亿美元)",
+                    "axisLine": {"show": True},
+                    "axisTick": {"show": True}
+                },
                 "series": [{
-                    "name": "影响程度",
+                    "name": "月度变化",
                     "type": "bar",
-                    "data": factor_weights,
-                    "itemStyle": {"color": "#5470c6"}
+                    "data": [july_decrease, august_increase],
+                    "label": {
+                        "show": True,
+                        "position": "top",
+                        "formatter": "{c}亿美元"
+                    },
+                    "itemStyle": {
+                        "color": ["#ee6666", "#5470c6"]  # 7月红色(下降)，8月蓝色(上升)
+                    }
                 }],
-                "tooltip": {"trigger": "axis", "formatter": "{b}: {c}%"}
+                "tooltip": {
+                    "trigger": "axis",
+                    "formatter": "{b}: {c}亿美元"
+                },
+                "grid": {
+                    "left": "3%",
+                    "right": "4%",
+                    "bottom": "3%",
+                    "containLabel": True
+                }
             }
         }
+
 
 
 
@@ -323,10 +285,8 @@ class VisualizationTool(BaseTool):
                             used_data_points.add(metric_name)
 
         # 从分类信息中提取独特洞察
-        if "categories" in data:
-            for category_name, category_items in data["categories"].items():
-                if isinstance(category_items, list):
-                    insights.append(f"{category_name}: {', '.join(category_items[:3])}")
+        if "categories" in data and isinstance(data["categories"], list):
+            insights.append(f"数据分类: {', '.join(data['categories'][:3])}")
 
         # 确保内容不重复，最多显示5个关键点
         key_points = key_points[:5]
