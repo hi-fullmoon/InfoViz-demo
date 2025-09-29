@@ -76,7 +76,8 @@
       justify-content: center;
     }
 
-    .chart-container, .card-container {
+    .chart-container,
+    .card-container {
       background: white;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
@@ -87,12 +88,14 @@
       max-width: 800px;
     }
 
-    .chart-container:hover, .card-container:hover {
+    .chart-container:hover,
+    .card-container:hover {
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
     }
 
-    .chart-title, .card-title {
+    .chart-title,
+    .card-title {
       font-size: 1.3em;
       font-weight: 600;
       color: #333;
@@ -253,7 +256,7 @@
                 <div class="insights">
                   <h4>💡 核心洞察</h4>
                   <ul>
-                    ${item.insights.map(insight => `<li>${insight}</li>`).join('')}
+                    ${typeof item.insights === 'string' ? item.insights : item.insights.map(insight => `<li>${insight}</li>`).join('')}
                   </ul>
                 </div>
               </div>

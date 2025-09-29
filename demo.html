@@ -76,7 +76,8 @@
       justify-content: center;
     }
 
-    .chart-container, .card-container {
+    .chart-container,
+    .card-container {
       background: white;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
@@ -87,12 +88,14 @@
       max-width: 800px;
     }
 
-    .chart-container:hover, .card-container:hover {
+    .chart-container:hover,
+    .card-container:hover {
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
       transform: translateY(-2px);
     }
 
-    .chart-title, .card-title {
+    .chart-title,
+    .card-title {
       font-size: 1.3em;
       font-weight: 600;
       color: #333;
@@ -214,13 +217,13 @@
     </div>
 
     <div class="footer">
-      <p>生成时间: <span class="timestamp">2025-09-28 23:44:52.919280</span></p>
+      <p>生成时间: <span class="timestamp">2025-09-29 11:29:16.672625</span></p>
     </div>
   </div>
 
   <script>
     // 可视化数据
-    const visualizationData = {"visualizations":[{"type":"card","card_id":"summary_card_1","title":"2025年8月外汇储备核心摘要","summary":"中国外汇储备在2025年8月实现显著增长，规模达到33221.54亿美元，创2016年1月以来最高水平","key_points":["8月末外汇储备：33221.54亿美元","月度变化：+299.19亿美元（+0.91%）","7月变化：-251.87亿美元","规模水平：3.3万亿美元以上"],"insights":["外汇储备止跌回升，显示积极信号","受美元指数下跌和全球资产价格上涨推动","非美元货币升值产生正估值效应","中国防范化解冲击能力持续提升"]},{"type":"card","card_id":"metrics_card_2","title":"关键数据指标","summary":"2025年前6个月外汇储备累计变化及影响因素分析","key_points":["1月：+66.79亿美元","2月：+182亿美元","3月：+134.41亿美元","4月：+410亿美元","5月：+36亿美元","6月：+321.67亿美元"],"insights":["前6个月累计增长显著，4月和6月表现突出","波动反映外部经济环境变化","整体呈现稳健增长态势"]},{"type":"echarts","chart_id":"monthly_trend_chart_1","title":"2025年7-8月外汇储备月度变化趋势","config":{"title":{"text":"2025年7-8月外汇储备月度变化趋势","left":"center"},"xAxis":{"type":"category","data":["2025年7月","2025年8月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"月度变化","type":"line","data":[-251.87,299.19],"markPoint":{"data":[{"type":"max","name":"最高值"},{"type":"min","name":"最低值"}]}}],"tooltip":{"trigger":"axis"}}},{"type":"echarts","chart_id":"yearly_accumulation_chart_2","title":"2025年前6个月外汇储备累计变化","config":{"title":{"text":"2025年前6个月外汇储备累计变化","left":"center"},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月"]},"yAxis":{"type":"value","name":"亿美元"},"series":[{"name":"月度变化","type":"bar","data":[66.79,182,134.41,410,36,321.67],"label":{"show":true,"position":"top"}}],"tooltip":{"trigger":"axis"}}},{"type":"echarts","chart_id":"influencing_factors_radar_3","title":"外汇储备影响因素分析","config":{"title":{"text":"外汇储备影响因素分析","left":"center"},"radar":{"indicator":[{"name":"主要经济体货币政策预期","max":100},{"name":"宏观经济数据","max":100},{"name":"美元指数变化","max":100},{"name":"全球金融资产价格","max":100},{"name":"汇率折算","max":100},{"name":"资产价格变化","max":100},{"name":"非美元货币对美元升值","max":100}]},"series":[{"name":"影响程度","type":"radar","data":[{"value":[85,75,90,80,70,75,85],"name":"影响因素权重"}]}],"tooltip":{"trigger":"item"}}}]};
+    const visualizationData = {"visualizations":[{"type":"card","card_id":"card_overview","title":"中国外汇储备总体概况","summary":"截至2025年8月末，中国外汇储备规模达到33221.54亿美元，重新站上3.3万亿美元大关，较7月末增加299.19亿美元，升幅0.91%","key_points":["外汇储备规模：33221.54亿美元","8月环比增长：299.19亿美元","月度增幅：0.91%","储备水平：重新站上3.3万亿美元"],"insights":"中国外汇储备在经历7月下降后强势反弹，显示外汇市场稳定性和管理有效性"},{"type":"card","card_id":"card_performance","title":"关键表现指标分析","summary":"2025年1-8月外汇储备呈现波动增长态势，其中4月增幅最大达410亿美元，7月出现唯一负增长，8月实现强劲回升","key_points":["最大单月增幅：4月增加410亿美元","唯一负增长：7月减少251.87亿美元","累计净增长：约1200亿美元","波动特征：呈现明显的月度波动性"],"insights":"外汇储备增长呈现明显的季节性波动，4月和6月为增长高峰期，7月为调整期"},{"type":"echarts","chart_id":"chart_trend","title":"2025年外汇储备月度变化趋势","config":{"title":{"text":"2025年外汇储备月度变化趋势","left":"center"},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"]},"yAxis":{"type":"value","name":"变化金额（亿美元）"},"series":[{"name":"月度变化","type":"line","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"smooth":true,"markPoint":{"data":[{"type":"max","name":"最大值"},{"type":"min","name":"最小值"}]}}],"tooltip":{"trigger":"axis"}}},{"type":"echarts","chart_id":"chart_comparison","title":"月度增长贡献度分析","config":{"title":{"text":"月度增长贡献度分析","left":"center"},"tooltip":{"trigger":"item","formatter":"{a} <br/>{b}: {c}亿美元 ({d}%)"},"legend":{"orient":"vertical","left":"left"},"series":[{"name":"增长贡献","type":"pie","radius":"50%","data":[{"value":66.79,"name":"1月"},{"value":182,"name":"2月"},{"value":134.41,"name":"3月"},{"value":410,"name":"4月"},{"value":36,"name":"5月"},{"value":321.67,"name":"6月"},{"value":299.19,"name":"8月"}],"emphasis":{"itemStyle":{"shadowBlur":10,"shadowOffsetX":0,"shadowColor":"rgba(0, 0, 0, 0.5)"}}}]}},{"type":"echarts","chart_id":"chart_correlation","title":"增长模式与波动性分析","config":{"title":{"text":"增长模式与波动性分析","left":"center"},"xAxis":{"type":"category","data":["1月","2月","3月","4月","5月","6月","7月","8月"],"name":"月份"},"yAxis":[{"type":"value","name":"变化金额（亿美元）","position":"left"},{"type":"value","name":"累计增长（亿美元）","position":"right"}],"series":[{"name":"月度变化","type":"bar","data":[66.79,182,134.41,410,36,321.67,-251.87,299.19],"yAxisIndex":0},{"name":"累计增长","type":"line","data":[66.79,248.79,383.2,793.2,829.2,1150.87,899,1198.19],"yAxisIndex":1,"smooth":true}],"tooltip":{"trigger":"axis","axisPointer":{"type":"cross"}}}}]};
 
     // 初始化所有可视化内容
     function initVisualization() {
@@ -253,7 +256,7 @@
                 <div class="insights">
                   <h4>💡 核心洞察</h4>
                   <ul>
-                    ${item.insights.map(insight => `<li>${insight}</li>`).join('')}
+                    ${typeof item.insights === 'string' ? item.insights : item.insights.map(insight => `<li>${insight}</li>`).join('')}
                   </ul>
                 </div>
               </div>
