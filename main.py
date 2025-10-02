@@ -1,6 +1,6 @@
 """
 基于 CrewAI 和 DeepSeek 模型的信息可视化应用
-三阶段处理：内容提炼 -> 信息分析与结构化 -> 可视化决策与执行
+两阶段处理：信息分析与结构化 -> 可视化决策与执行
 """
 
 import os
@@ -50,63 +50,6 @@ def extract_json_from_markdown(text: str) -> str:
 
     # 如果都没找到，返回原文本
     return text
-
-def validate_data_authenticity(result_data: str, original_text: str) -> Dict[str, Any]:
-    """验证生成的数据是否包含虚拟数据"""
-    warnings = []
-
-    try:
-        # 尝试解析JSON数据
-        if result_data.strip():
-            data = json.loads(result_data)
-
-            # 检查可视化数据
-            if 'visualizations' in data:
-                for viz in data['visualizations']:
-                    if viz.get('type') == 'echarts' and 'config' in viz:
-                        config = viz['config']
-
-                        # 检查雷达图数据
-                        if 'radar' in config:
-                            series_data = config.get('series', [])
-                            for series in series_data:
-                                if 'data' in series:
-                                    for data_item in series['data']:
-                                        if 'value' in data_item:
-                                            values = data_item['value']
-                                            # 检查是否包含虚拟数值（如85, 70, 45等常见虚拟权重）
-                                            if any(val in [85, 70, 45, 90, 80, 60, 50, 40, 30, 20, 10] for val in values):
-                                                warnings.append(f"检测到可能的虚拟数据：雷达图权重 {values}")
-
-                        # 检查饼图数据
-                        if 'series' in config:
-                            for series in config['series']:
-                                if series.get('type') == 'pie' and 'data' in series:
-                                    pie_data = series['data']
-                                    # 检查是否包含虚拟百分比数据
-                                    for item in pie_data:
-                                        if 'value' in item and isinstance(item['value'], (int, float)):
-                                            if item['value'] in [85, 70, 45, 90, 80, 60, 50, 40, 30, 20, 10]:
-                                                warnings.append(f"检测到可能的虚拟数据：饼图数值 {item['value']}")
-
-            # 检查关键指标数据
-            if 'key_metrics' in data:
-                for metric in data['key_metrics']:
-                    if 'value' in metric:
-                        value = metric['value']
-                        # 检查是否包含虚拟权重值
-                        if isinstance(value, (int, float)) and value in [85, 70, 45, 90, 80, 60, 50, 40, 30, 20, 10]:
-                            warnings.append(f"检测到可能的虚拟数据：关键指标数值 {value}")
-
-    except json.JSONDecodeError:
-        warnings.append("无法解析JSON数据，跳过虚拟数据检查")
-
-    return {
-        "has_virtual_data": len(warnings) > 0,
-        "warnings": warnings,
-        "original_text_length": len(original_text),
-        "result_data_length": len(result_data)
-    }
 
 # 创建 Agent
 information_processor = Agent(
@@ -246,27 +189,11 @@ def main():
         results = process_text_with_crewai(text_content)
         print("\n✅ 处理完成！")
 
-        # 验证数据真实性
-        print("\n🔍 验证数据真实性...")
-        validation_result = validate_data_authenticity(
-            results.get('visualization_result', ''),
-            text_content
-        )
-
-        if validation_result['has_virtual_data']:
-            print("⚠️  警告：检测到可能的虚拟数据！")
-            for warning in validation_result['warnings']:
-                print(f"   - {warning}")
-            print("💡 建议：请检查生成的可视化数据是否严格来源于原始文本")
-        else:
-            print("✅ 数据验证通过：未检测到虚拟数据")
-
         # 保存结果
         serializable_results = {
             "information_processing_result": str(results.get('information_processing_result', '')),
             "visualization_result": str(results.get('visualization_result', '')),
             "final_result": str(results.get('final_result', '')),
-            "data_validation": validation_result,
             "timestamp": str(datetime.now())
         }
 

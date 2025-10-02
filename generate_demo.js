@@ -30,19 +30,19 @@ function generateDemo() {
     let templateContent = fs.readFileSync(templatePath, 'utf8');
 
     // 检查必要的字段
-    if (!jsonData.visualization_result) {
-      throw new Error('visualization_result.json 中缺少 visualization_result 字段');
+    if (!jsonData.final_result) {
+      throw new Error('visualization_result.json 中缺少 final_result 字段');
     }
 
     // 解析 visualization_result 字段
-    const visualizationResult = JSON.parse(jsonData.visualization_result);
+    const result = JSON.parse(jsonData.final_result);
 
     // 替换变量
     const replacements = {
       '{{title}}': '数据可视化分析报告',
-      '{{description}}': visualizationResult.description || '基于AI智能分析的数据可视化展示',
+      '{{description}}': result.description || '基于AI智能分析的数据可视化展示',
       '{{timestamp}}': jsonData.timestamp || new Date().toISOString(),
-      '{{charts_json}}': JSON.stringify(visualizationResult),
+      '{{charts_json}}': JSON.stringify(result),
     };
 
     // 执行替换
@@ -58,7 +58,7 @@ function generateDemo() {
     console.log(`📁 输出文件: ${outputPath}`);
 
     // 显示统计信息
-    const chartCount = visualizationResult.visualizations ? visualizationResult.visualizations.length : 0;
+    const chartCount = result.visualizations ? result.visualizations.length : 0;
     console.log(`📊 包含 ${chartCount} 个可视化项`);
 
   } catch (error) {
