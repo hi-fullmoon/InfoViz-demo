@@ -256,7 +256,7 @@
                 <div class="insights">
                   <h4>💡 核心洞察</h4>
                   <ul>
-                    ${typeof item.insights === 'string' ? item.insights : item.insights.map(insight => `<li>${insight}</li>`).join('')}
+                    ${typeof item.insights === 'string' ? item.insights : item.insights?.map?.(insight => `<li>${insight}</li>`).join('')}
                   </ul>
                 </div>
               </div>
