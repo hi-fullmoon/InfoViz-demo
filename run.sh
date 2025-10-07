@@ -4,8 +4,12 @@
 # 使用方法: ./run.sh [参数]
 # 参数: test - 运行测试, run - 运行主程序 (默认)
 
-
-source .venv/bin/activate
+# 激活虚拟环境（如果存在）
+if [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
+    source .venv/bin/activate
+else
+    echo "⚠️  未找到 .venv，尝试使用系统 Python 运行..."
+fi
 
 # 检查参数
 if [ "$1" = "test" ]; then

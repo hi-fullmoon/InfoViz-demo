@@ -16,16 +16,14 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 # 配置 DeepSeek 模型
-def get_deepseek_llm():
-    """配置 DeepSeek 模型"""
-    return ChatOpenAI(
-        model="deepseek/deepseek-chat",
-        api_key=os.getenv("DEEPSEEK_API_KEY"),
-        base_url="https://api.deepseek.com/v1",
-        temperature=0.1
-    )
+def get_deepseek_llm() -> str:
+    """配置 DeepSeek 模型供 CrewAI 使用（litellm 风格的 provider/model 标识）。"""
+    # 为 litellm 指定 DeepSeek 的 API Base，避免 provider 解析失败
+    os.environ.setdefault("LITELLM_API_BASE", "https://api.deepseek.com")
+    # CrewAI (>=0.28) 通过 litellm 调用模型，传入 "provider/model" 格式可避免 "LLM Provider NOT provided" 错误
+    return "deepseek/deepseek-chat"
 
-# 获取 DeepSeek LLM 实例
+# 获取 DeepSeek LLM 标识（litellm provider/model）
 deepseek_llm = get_deepseek_llm()
 
 def extract_json_from_markdown(text: str) -> str:
