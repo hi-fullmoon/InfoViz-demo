@@ -23,8 +23,17 @@ def get_deepseek_llm() -> str:
     # CrewAI (>=0.28) 通过 litellm 调用模型，传入 "provider/model" 格式可避免 "LLM Provider NOT provided" 错误
     return "deepseek/deepseek-chat"
 
+# 配置 goggle 模型
+def get_goggle_llm() -> str:
+    """配置 Google 模型供 CrewAI 使用（litellm 风格的 provider/model 标识）。"""
+    # 为 litellm 指定 Google 的 API Base，避免 provider 解析失败
+    os.environ.setdefault("LITELLM_API_BASE", "https://api.google.com")
+    # CrewAI (>=0.28) 通过 litellm 调用模型，传入 "provider/model" 格式可避免 "LLM Provider NOT provided" 错误
+    return "google/gemini-2.0-flash"
+
 # 获取 DeepSeek LLM 标识（litellm provider/model）
-deepseek_llm = get_deepseek_llm()
+# llm = get_deepseek_llm()
+llm = get_goggle_llm()
 
 def extract_json_from_markdown(text: str) -> str:
     """从包含 markdown 代码块的文本中提取 JSON 内容"""
@@ -59,7 +68,7 @@ information_processor = Agent(
               "3. 将处理后的信息转换为适合可视化的JSON格式数据\n"
               "4. 确保数据的完整性和逻辑性，为后续可视化提供高质量的结构化数据\n"
               "**重要约束：绝对禁止生成任何虚拟、推测或虚构的数据，所有数据必须严格来源于原始文本**",
-    llm=deepseek_llm,
+    llm=llm,
     verbose=True
 )
 
@@ -74,7 +83,7 @@ visualizer = Agent(
               "5. 确保不同可视化类型间的逻辑关联性和视觉一致性\n"
               "6. 考虑用户交互体验和内容可读性\n"
               "**严格约束：绝对禁止生成任何虚拟、推测或虚构的数据，所有图表数据必须严格来源于输入的结构化数据，不得添加任何原始数据中不存在的数值、比例或权重**",
-    llm=deepseek_llm,
+    llm=llm,
     verbose=True
 )
 
@@ -171,6 +180,10 @@ def main():
 
     if not os.getenv("DEEPSEEK_API_KEY"):
         print("❌ 请设置 DEEPSEEK_API_KEY 环境变量")
+        return
+
+    if not os.getenv("GOOGLE_API_KEY"):
+        print("❌ 请设置 GOOGLE_API_KEY 环境变量")
         return
 
     try:
