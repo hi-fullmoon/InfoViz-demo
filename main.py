@@ -10,7 +10,8 @@ from typing import Dict, Any
 from crewai import Agent, Task, Crew, Process
 from dotenv import load_dotenv
 from datetime import datetime
-from langchain_openai import ChatOpenAI
+from qwen3_max_llm import Qwen3MaxLLM
+import dashscope
 
 # 加载环境变量
 load_dotenv()
@@ -23,17 +24,20 @@ def get_deepseek_llm() -> str:
     # CrewAI (>=0.28) 通过 litellm 调用模型，传入 "provider/model" 格式可避免 "LLM Provider NOT provided" 错误
     return "deepseek/deepseek-chat"
 
-# 配置 goggle 模型
-def get_goggle_llm() -> str:
-    """配置 Google 模型供 CrewAI 使用（litellm 风格的 provider/model 标识）。"""
-    # 为 litellm 指定 Google 的 API Base，避免 provider 解析失败
-    os.environ.setdefault("LITELLM_API_BASE", "https://api.google.com")
-    # CrewAI (>=0.28) 通过 litellm 调用模型，传入 "provider/model" 格式可避免 "LLM Provider NOT provided" 错误
-    return "google/gemini-2.0-flash"
+# 配置 Gemini 模型（如需切换）
+def get_gemini_llm() -> str:
+    """配置 Gemini 模型供 CrewAI 使用（litellm 风格的 provider/model 标识）。"""
+    return "gemini/gemini-1.5-flash"
 
-# 获取 DeepSeek LLM 标识（litellm provider/model）
+# 配置阿里百炼模型
+def get_qwen_llm() -> str:
+    print("DASHSCOPE_API_KEY =", os.getenv("DASHSCOPE_API_KEY"))
+    return "dashscope/qwen-max"
+
+# 选择要使用的 LLM
 # llm = get_deepseek_llm()
-llm = get_goggle_llm()
+# llm = get_gemini_llm()
+llm = get_qwen_llm()
 
 def extract_json_from_markdown(text: str) -> str:
     """从包含 markdown 代码块的文本中提取 JSON 内容"""
@@ -176,15 +180,7 @@ def process_text_with_crewai(text: str) -> Dict[str, Any]:
 
 def main():
     """主程序入口"""
-    print("🚀 启动基于 CrewAI 和 DeepSeek 的信息可视化应用")
-
-    if not os.getenv("DEEPSEEK_API_KEY"):
-        print("❌ 请设置 DEEPSEEK_API_KEY 环境变量")
-        return
-
-    if not os.getenv("GOOGLE_API_KEY"):
-        print("❌ 请设置 GOOGLE_API_KEY 环境变量")
-        return
+    print("🚀 启动基于 CrewAI 的信息可视化应用")
 
     try:
         with open('data.txt', 'r', encoding='utf-8') as f:
@@ -194,7 +190,7 @@ def main():
         print("❌ 未找到 data.txt 文件")
         return
 
-    print("\n🔄 开始 CrewAI 三阶段处理...")
+    print("\n🔄 开始 CrewAI 二阶段处理...")
 
     try:
         results = process_text_with_crewai(text_content)
