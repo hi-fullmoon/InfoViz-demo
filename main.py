@@ -7,11 +7,9 @@ import os
 import json
 import re
 from typing import Dict, Any
-from crewai import Agent, Task, Crew, Process
+from crewai import LLM, Agent, Task, Crew, Process
 from dotenv import load_dotenv
 from datetime import datetime
-from qwen3_max_llm import Qwen3MaxLLM
-import dashscope
 
 # 加载环境变量
 load_dotenv()
@@ -31,7 +29,6 @@ def get_gemini_llm() -> str:
 
 # 配置阿里百炼模型
 def get_qwen_llm() -> str:
-    print("DASHSCOPE_API_KEY =", os.getenv("DASHSCOPE_API_KEY"))
     return "dashscope/qwen-max"
 
 # 选择要使用的 LLM
