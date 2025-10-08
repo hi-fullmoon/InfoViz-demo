@@ -22,19 +22,13 @@ def get_deepseek_llm() -> str:
     # CrewAI (>=0.28) 通过 litellm 调用模型，传入 "provider/model" 格式可避免 "LLM Provider NOT provided" 错误
     return "deepseek/deepseek-chat"
 
-# 配置 Gemini 模型（如需切换）
-def get_gemini_llm() -> str:
-    """配置 Gemini 模型供 CrewAI 使用（litellm 风格的 provider/model 标识）。"""
-    return "gemini/gemini-1.5-flash"
-
 # 配置阿里百炼模型
 def get_qwen_llm() -> str:
     return "dashscope/qwen-max"
 
 # 选择要使用的 LLM
-# llm = get_deepseek_llm()
-# llm = get_gemini_llm()
-llm = get_qwen_llm()
+llm = get_deepseek_llm()
+# llm = get_qwen_llm()
 
 def extract_json_from_markdown(text: str) -> str:
     """从包含 markdown 代码块的文本中提取 JSON 内容"""
